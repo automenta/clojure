@@ -632,10 +632,10 @@
   {:added "1.0"}
   
   [& options]
-    (when *compile-files*
-      (let [options-map (into1 {} (map vec (partition 2 options)))
-            [cname bytecode] (generate-class options-map)]
-        (clojure.lang.Compiler/writeClassFile cname bytecode))))
+  (let [options-map (into1 {} (map vec (partition 2 options)))]
+    (when (or *compile-files* (*compile-write-classes* (str (:name options-map))))
+      (let [[cname bytecode] (generate-class options-map)]
+    (clojure.lang.Compiler/writeClassFile cname bytecode)))))
 
 ;;;;;;;;;;;;;;;;;;;; gen-interface ;;;;;;;;;;;;;;;;;;;;;;
 ;; based on original contribution by Chris Houser
@@ -717,7 +717,7 @@
   [& options]
     (let [options-map (apply hash-map options)
           [cname bytecode] (generate-interface options-map)]
-      (when *compile-files*
+      (when (or *compile-files* (*compile-write-classes* (str (:name options-map))))
         (clojure.lang.Compiler/writeClassFile cname bytecode))
       (.defineClass ^DynamicClassLoader (deref clojure.lang.Compiler/LOADER)
                     (str (:name options-map)) bytecode options)))

@@ -248,6 +248,9 @@ static final public Var COMPILE_PATH = Var.intern(Namespace.findOrCreate(Symbol.
 static final public Var COMPILE_FILES = Var.intern(Namespace.findOrCreate(Symbol.intern("clojure.core")),
                                                    Symbol.intern("*compile-files*"), Boolean.FALSE).setDynamic();
 
+static final public Var COMPILE_WRITE_CLASSES = Var.intern(Namespace.findOrCreate(Symbol.intern("clojure.core")),
+                               Symbol.intern("*compile-write-classes*"), RT.set()).setDynamic();
+
 static final public Var INSTANCE = Var.intern(Namespace.findOrCreate(Symbol.intern("clojure.core")),
                                               Symbol.intern("instance?"));
 
@@ -4670,7 +4673,7 @@ static public class ObjExpr implements Expr{
 		cv.visitEnd();
 
 		bytecode = cw.toByteArray();
-		if(RT.booleanCast(COMPILE_FILES.deref()))
+        if(RT.booleanCast(COMPILE_FILES.deref()) || RT.booleanCast(COMPILE_WRITE_CLASSES.invoke(name)))
 			writeClassFile(internalName, bytecode);
 //		else
 //			getCompiledClass();
