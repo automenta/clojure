@@ -391,6 +391,19 @@
     (is (= [1 2] s2))
     (is (= 1 @realize-count))))
 
+(deftest test-recursive-seq
+  (is (thrown? Exception (let [escher (promise)]
+                           (deliver escher (lazy-seq (lazy-seq (if (seq @escher) nil (list 42)))))
+                           (seq @escher))))
+  (is (thrown? Exception (let [primes (promise)]
+                           (deliver primes (filter
+                                             (fn isprime[n]
+                                               (every?
+                                                 #(pos? (mod n %))
+                                                 (take-while #(<=(* % %)n) @primes)))
+                                             (iterate inc 2)))
+                           (first @primes)))))
+
 (deftest test-seq
   (is (not (seq? (seq []))))
   (is (seq? (seq [1 2])))

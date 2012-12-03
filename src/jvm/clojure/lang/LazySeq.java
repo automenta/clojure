@@ -39,15 +39,30 @@ public Obj withMeta(IPersistentMap meta){
   });
 }
 
+// Before calling user code (f.invoke() in sval and, indirectly,
+// ((LazySeq)ls).sval() in seq -- and even RT.seq() in seq), ensure that
+// the LazySeq state is in one of these states:
+//
+// State            f          sv
+// ================================
+// Unrealized       not null   null
+// Realized         null       null
+// Being realized   null       this
+
 final synchronized Object sval(){
-	if(fn != null)
-		{
-                sv = fn.invoke();
+    if(fn != null)
+        {
+        IFn f = fn;
                 fn = null;
-		}
-	if(sv != null)
-		return sv;
-	return s;
+        sv = this;
+        sv = f.invoke();
+        }
+    if(sv != null)
+        if (sv == this)
+            throw new RuntimeException("Unexpected seq realization");
+        else
+            return sv;
+    return s;
 }
 
 final synchronized public ISeq seq(){
@@ -55,12 +70,13 @@ final synchronized public ISeq seq(){
 	if(sv != null)
 		{
 		Object ls = sv;
-		sv = null;
+        sv = this;
 		while(ls instanceof LazySeq)
 			{
 			ls = ((LazySeq)ls).sval();
 			}
 		s = RT.seq(ls);
+        sv = null;
 		}
 	return s;
 }
