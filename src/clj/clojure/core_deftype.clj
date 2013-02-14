@@ -16,6 +16,20 @@
   [ns]
   (.replace (str ns) \- \_))
 
+(defn ^:private throw-on-varargs
+  "Throws an exception if arglist contains a varargs declaration.
+  Protocol/interface method impls defined with deftype, defrecord, and reify
+  don't support varags."
+  [arglist]
+  (when (some #(= '& %) arglist)
+    (throw (clojure.lang.Compiler$CompilerException.
+            *file*
+            @clojure.lang.Compiler/LINE
+            @clojure.lang.Compiler/COLUMN
+            (IllegalArgumentException.
+             "No varargs support for definterface and defprotocol method sigs;
+  ditto for method impls defined with deftype, defrecord, and reify.")))))
+
 ;for now, built on gen-interface
 (defmacro definterface
   "Creates a new Java interface with the given name and method sigs.
@@ -29,6 +43,7 @@
   [name & sigs]
   (let [tag (fn [x] (or (:tag (meta x)) Object))
         psig (fn [[name [& args]]]
+               (throw-on-varargs args)
                (vector name (vec (map tag args)) (tag name) (map meta args)))
         cname (with-meta (symbol (str (namespace-munge *ns*) "." name)) (meta name))]
     `(let [] 
@@ -61,6 +76,7 @@
                        (disj 'Object 'java.lang.Object)
                        vec)
         methods (map (fn [[name params & body]]
+                       (throw-on-varargs params)
                        (cons name (maybe-destructured params body)))
                      (apply concat (vals impls)))]
     (when-let [bad-opts (seq (remove #{:no-print :load-ns} (keys opts)))]
@@ -697,6 +713,8 @@
                                   (if (vector? (first rs))
                                     (recur (conj as (first rs)) (next rs))
                                     [(seq as) (first rs)]))]
+                            (doseq [arglist arglists]
+                              (throw-on-varargs arglist))
                             (when (some #{0} (map count arglists))
                               (throw (IllegalArgumentException. (str "Definition of function " mname " in protocol " name " must take at least one arg."))))
                             (when (m (keyword mname))

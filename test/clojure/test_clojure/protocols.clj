@@ -727,3 +727,73 @@
 (deftest CLJ-1807-prefer-proto
   (is (= 1 (proto1 [])))
   (is (= 2 (proto2 []))))
+
+;; Tests for CLJ-888 / CLJ-1024
+(defprotocol PTestCLJ888
+  (p-clj-888 [this a b c]))
+(defprotocol ITestCLJ888
+  (i-clj-888 [a b c]))
+(deftest throws-on-variadic-methods
+  ;; Protocol method declarations may not have varargs.  & is just treated as a
+  ;; normal argument happened to be named &, so we simply don't allow that.
+  (is (thrown? clojure.lang.Compiler$CompilerException
+               ;; Have to defer processing of test form else the try
+               ;; block has not been compiled when the error is thrown
+               (macroexpand
+                '(defprotocol MultiArity
+                   (ok [a b c])
+                   (notok [a & rest])))))
+  ;; The same applies to interface method specifications.
+  (is (thrown? clojure.lang.Compiler$CompilerException
+               (macroexpand
+                '(definterface IMultiArity
+                   (ok [])
+                   (notok [& rest])))))
+  ;; Param lists like [a [b c & more]] are ok, though.  The method has 2
+  ;; parameters, and the destructuring-thingy has no effect other than
+  ;; documenting how the second arg has to look like.
+  (macroexpand
+   '(defprotocol Foo
+      (ok1 [a [b c] d])
+      (ok2 [a [& bs]])))
+  (macroexpand
+   '(definterface IFoo
+      (ok1 [a [b c] d])
+      (ok2 [a [& bs]])))
+  ;; Ok, finally, when extending some protocol or interface in-place using
+  ;; deftype, defrecord, or reify, the method impls may not use varargs, too.
+  ;; (Dynamic extension via `extend` may do that, though.)
+  (is (thrown? clojure.lang.Compiler$CompilerException
+               (eval
+                '(defrecord MyRecord [x]
+                   PTestCLJ888
+                   (p-clj-888 [this & more]
+                     :foo)))))
+  (is (thrown? clojure.lang.Compiler$CompilerException
+               (eval
+                '(defrecord MyRecord [x]
+                   ITestCLJ888
+                   (I-clj-888 [this & more]
+                     :foo)))))
+  (is (thrown? clojure.lang.Compiler$CompilerException
+               (eval
+                '(deftype MyType [x]
+                   PTestCLJ888
+                   (p-clj-888 [this & more]
+                     :foo)))))
+  (is (thrown? clojure.lang.Compiler$CompilerException
+               (eval
+                '(deftype MyType [x]
+                   ITestCLJ888
+                   (i-clj-888 [this & more]
+                     :foo)))))
+  (is (thrown? clojure.lang.Compiler$CompilerException
+               (eval
+                '(reify PTestCLJ888
+                   (p-clj-888 [this & more]
+                     :foo)))))
+  (is (thrown? clojure.lang.Compiler$CompilerException
+               (eval
+                '(reify ITestCLJ888
+                   (i-clj-888 [this & more]
+                     :foo))))))
