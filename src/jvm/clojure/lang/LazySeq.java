@@ -117,6 +117,9 @@ public int hashCode(){
 }
 
 public int hasheq(){
+    ISeq s = seq();
+    if((s != null) && (s instanceof IHashEq))
+            return ((IHashEq) s).hasheq();
 	return Murmur3.hashOrdered(this);
 }
 
