@@ -6012,6 +6012,8 @@
           (load lib need-ns require)
           (catch Exception e
             (when undefined-on-entry
+              (dosync
+                (alter *loaded-libs* disj lib))
               (remove-ns lib))
             (throw e)))
         (throw-if (and need-ns (not (find-ns lib)))
