@@ -31,23 +31,26 @@ transient String _str;
 
 public static Keyword intern(Symbol sym){
 	Keyword k = null;
-	Reference<Keyword> existingRef = table.get(sym);
-	if(existingRef == null)
+    for(;;)
 		{
-		Util.clearCache(rq, table);
-		if(sym.meta() != null)
-			sym = (Symbol) sym.withMeta(null);
-		k = new Keyword(sym);
-		existingRef = table.putIfAbsent(sym, new WeakReference<Keyword>(k, rq));
+        Reference<Keyword> existingRef = table.get(sym);
+        if(existingRef == null)
+            {
+            Util.clearCache(rq, table);
+            if(sym.meta() != null)
+                sym = (Symbol) sym.withMeta(null);
+            k = new Keyword(sym);
+            existingRef = table.putIfAbsent(sym, new WeakReference<Keyword>(k, rq));
+            }
+        if(existingRef == null)
+            break;
+        k = existingRef.get();
+        if(k != null)
+            break;
+        //entry died in the interim, do over
+        table.remove(sym, existingRef);
 		}
-	if(existingRef == null)
-		return k;
-	Keyword existingk = existingRef.get();
-	if(existingk != null)
-		return existingk;
-	//entry died in the interim, do over
-	table.remove(sym, existingRef);
-	return intern(sym);
+    return k;
 }
 
 public static Keyword intern(String ns, String name){
