@@ -39,6 +39,17 @@
       (is (= (-> #{a b} transient (disj! a) persistent! (conj a))
             (-> #{a b} transient (disj! a) persistent! (conj a)))))))
 
+(deftest transient-predicate
+  (testing "transient? predicate returns true for instances of ITransientCollections"
+    (let [[m v s] [{:a 1} [:b 2] #{:c 3}]
+          [tm tv ts] (mapv transient [m v s])]
+      (is (= (transient? m) false))
+      (is (= (transient? v) false))
+      (is (= (transient? s) false))
+      (is (= (transient? tm) true))
+      (is (= (transient? tv) true))
+      (is (= (transient? ts) true)))))
+
 (deftest transient-mod-after-persistent
   (let [v [1 2 3]
         t (transient v)

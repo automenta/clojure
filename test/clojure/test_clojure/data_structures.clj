@@ -34,9 +34,6 @@
              (+ i (count (nthnext coll i)))
              (+ i (count (drop i coll))))))))
 
-(defn- transient? [x]
-  (instance? clojure.lang.ITransientCollection x))
-
 (defn gen-transient-set-action []
   (gen/rand-nth [[#(conj! %1 %2) #(conj %1 %2) (gen/uniform -100 100)]
                  [#(disj! %1 %2) #(disj %1 %2) (gen/uniform -100 100)]
