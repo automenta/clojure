@@ -90,7 +90,7 @@
               *state* :between
               *sb* nil]
       (startparse s content-handler)
-      ((:content *current*) 0)))) 
+      ((:content *current*) 0))))
 
 (defn emit-element [e]
   (if (instance? String e)
