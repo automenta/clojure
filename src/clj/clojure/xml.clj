@@ -28,7 +28,7 @@
                        (assoc e :content (conj (or (:content e) []) c)))
         push-chars (fn []
                      (when (and (= *state* :chars)
-                                (some (complement #(Character/isWhitespace (char %))) (str *sb*)))
+                                (some #(not (Character/isWhitespace (char %))) (str *sb*)))
                        (set! *current* (push-content *current* (str *sb*)))))]
     (new clojure.lang.XMLHandler
          (proxy [ContentHandler] []
