@@ -88,6 +88,10 @@
     ([coll f] (.reduce ^clojure.lang.IReduce coll f))
     ([coll f val] (.reduce coll f val)))
 
+  clojure.lang.IReduceInit
+  (coll-reduce
+    ([coll f val] (.reduce coll f val)))
+
   ;;aseqs are iterable, masking internal-reducers
   clojure.lang.ASeq
   (coll-reduce
