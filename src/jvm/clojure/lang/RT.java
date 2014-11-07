@@ -1797,7 +1797,7 @@ static public int length(ISeq list){
 
 static public int boundedLength(ISeq list, int limit) {
 	int i = 0;
-	for(ISeq c = list; c != null && i <= limit; c = c.next()) {
+    for(ISeq c = list; i <= limit && seq(c) != null; c = c.more()) {
 		i++;
 	}
 	return i;
