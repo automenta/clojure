@@ -2832,6 +2832,13 @@ public static class IfExpr implements Expr, MaybePrimitiveExpr{
             finally{
                 Var.popThreadBindings();
                 }
+            if (testexpr instanceof LiteralExpr)
+                {
+                if (RT.booleanCast(((LiteralExpr)testexpr).val()))
+                    return thenexpr;
+                else
+                    return elseexpr;
+                }
 			return new IfExpr(lineDeref(),
                               columnDeref(),
 			                  testexpr,
