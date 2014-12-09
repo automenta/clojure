@@ -688,9 +688,10 @@
   seq calls. See also - realized?"
   {:added "1.0"}
   [& body]
-  (list 'new 'clojure.lang.LazySeq (list* '^{:once true} fn* [] body)))    
+  (list 'new 'clojure.lang.LazySeq (list* '^{:once true} fn* [] body)))
 
 (defn ^:static ^clojure.lang.ChunkBuffer chunk-buffer ^clojure.lang.ChunkBuffer [capacity]
+  (when (clojure.lang.Numbers/isNeg capacity) (throw (Exception. (str "wtf negative capacity " capacity))))
   (clojure.lang.ChunkBuffer. capacity))
 
 (defn ^:static chunk-append [^clojure.lang.ChunkBuffer b x]
@@ -2739,7 +2740,9 @@
     (when-let [s (seq coll)]
       (if (chunked-seq? s)
         (let [c (chunk-first s)
-              size (int (count c))
+              raw-size (count c)
+              _ (when (neg? raw-size) (throw (Exception. (str "wtf neg raw-size " raw-size " for collection " c))))
+              size (int raw-size)
               b (chunk-buffer size)]
           (dotimes [i size]
               (chunk-append b (f (.nth c i))))

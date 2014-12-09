@@ -32,6 +32,9 @@ public ArrayChunk(Object[] array, int off, int end){
 	this.array = array;
 	this.off = off;
 	this.end = end;
+    if (off > end) {
+        Util.sneakyThrow(new Exception("WTF bad array-chunk" + off + end + array));
+    }
 }
 
 public Object nth(int i){
