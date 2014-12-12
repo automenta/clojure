@@ -105,3 +105,16 @@
     (defn foo
       [{:keys [^String s]}]
       (.indexOf s "boo"))))
+
+(deftest defaults-refer-to-enclosing-scope-in-map-destructuring
+  (is (= (let [foo 1
+               bar 0
+               {:keys [bar foo]
+                :or {foo 3 bar (inc foo)}} {}]
+           {:foo foo :bar bar})
+         (let [foo 1
+               bar 0
+               {:keys [foo bar]
+                :or {foo 3 bar (inc foo)}} {}]
+           {:foo foo :bar bar})
+         {:foo 3 :bar 2})))
