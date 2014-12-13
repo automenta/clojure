@@ -27,7 +27,7 @@ import java.util.NoSuchElementException;
  * <p>null keys and values are ok, but you won't be able to distinguish a null value via valAt - use contains/entryAt</p>
  */
 
-public class PersistentArrayMap extends APersistentMap implements IObj, IEditableCollection, IMapIterable, IKVReduce{
+public class PersistentArrayMap extends APersistentMap implements IObj, IEditableMap, IMapIterable, IKVReduce{
 
 final Object[] array;
 static final int HASHTABLE_THRESHOLD = 16;

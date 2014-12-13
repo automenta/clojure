@@ -16,7 +16,7 @@ import java.util.List;
 
 public class PersistentHashSet extends APersistentSet implements IObj, IEditableCollection {
 
-static public final PersistentHashSet EMPTY = new PersistentHashSet(null, PersistentHashMap.EMPTY);
+static public final PersistentHashSet EMPTY = new PersistentHashSet(null, PersistentArrayMap.EMPTY);
 
 final IPersistentMap _meta;
 
@@ -110,7 +110,7 @@ public PersistentHashSet withMeta(IPersistentMap meta){
 }
 
 public ITransientCollection asTransient() {
-	return new TransientHashSet(((PersistentHashMap) impl).asTransient());
+    return new TransientHashSet(((IEditableMap) impl).asTransient());
 }
 
 public IPersistentMap meta(){
