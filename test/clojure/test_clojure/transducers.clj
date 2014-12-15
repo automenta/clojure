@@ -408,3 +408,19 @@
          (sequence (map-indexed vector) [])))
   (is (= [[0 1] [1 2] [2 3] [3 4]]
          (sequence (map-indexed vector) (range 1 5)))))
+
+(deftest test-eduction-completion
+  (testing "eduction completes inner xformed rfn"
+    (is (= [[0 1 2] [3 4 5] [6 7]]
+           (into []
+                 (comp cat (partition-all 3))
+                 (eduction (partition-all 5) (range 8))))))
+  (testing "outer rfns completed only once"
+    (let [counter (atom 0)
+          ;; outer rfn
+          rf      (completing conj #(do (swap! counter inc)
+                                        (vec %)))
+          coll    (eduction  (map inc) (range 5))
+          res     (transduce (map str) rf [] coll)]
+      (is (= 1 @counter))
+      (is (= ["1" "2" "3" "4" "5"] res)))))
