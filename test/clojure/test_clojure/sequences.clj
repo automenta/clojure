@@ -1122,6 +1122,16 @@
     (take-while pos? [-1 -2 -3]) () ))
 
 
+(deftest test-take-until
+  (are [x y] (= (take-until neg? x) y)
+    []         ()
+    [1 2 3 4]  '(1 2 3 4)
+    [1 2 3 -1] '(1 2 3 -1)
+    [1 -1 2 3] '(1 -1)
+    [-1 1 2 3] '(-1)
+    [-1 -2 -3] '(-1) ))
+
+
 (deftest test-drop-while
   (are [x y] (= x y)
     (drop-while pos? []) ()

@@ -77,6 +77,7 @@
 (def gen-partition-all (fbind (literal gen/s-pos-int) partition-all))
 (def gen-partition-by (fbind gen-predfn partition-by))
 (def gen-take-while (fbind gen-predfn take-while))
+(def gen-take-until (fbind gen-predfn take-until))
 (def gen-take-nth (fbind (literal gen/s-pos-int) take-nth))
 (def gen-keep-indexed (fbind gen-indexedfn keep-indexed))
 (def gen-map-indexed (fbind gen-indexedfn map-indexed))
@@ -89,7 +90,7 @@
   (gen/one-of [gen-take gen-drop gen-map gen-mapcat
                gen-filter gen-remove gen-keep
                gen-partition-all gen-partition-by gen-take-while
-               gen-take-nth gen-drop-while
+               gen-take-until gen-take-nth gen-drop-while
                gen-keep-indexed gen-map-indexed
                gen-distinct gen-dedupe gen-interpose]))
 
@@ -298,6 +299,15 @@
                 [1 -1 2 3] '(1)
                 [-1 1 2 3] ()
                 [-1 -2 -3] ()))
+
+(deftest test-take-until
+  (are [coll y] (= (transduce (take-until neg?) conj coll) y)
+                [] ()
+                [1 2 3 4] '(1 2 3 4)
+                [1 2 3 -1] '(1 2 3 -1)
+                [1 -1 2 3] '(1 -1)
+                [-1 1 2 3] '(-1)
+                [-1 -2 -3] '(-1)))
 
 (deftest test-drop-while
   (are [coll y] (= (transduce (drop-while pos?) conj coll) y)
