@@ -102,11 +102,8 @@
 
 (defn apply-as-seq [coll actions]
   (doall
-    (loop [s coll
-           [action & actions'] actions]
-          (if action
-            (recur ((:seq action) s) actions')
-            s))))
+    ((->> actions reverse (map :seq) (apply comp))
+     coll)))
 
 (defn apply-as-xf-seq
   [coll actions]
