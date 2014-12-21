@@ -5068,25 +5068,25 @@
    :static true}
   ([]
    (fn [rf]
-     (let [seen (volatile! #{})]
+     (let [seen (volatile! (transient #{}))]
        (fn
          ([] (rf))
          ([result] (rf result))
          ([result input]
-          (if (contains? @seen input)
+          (if (.contains ^clojure.lang.ITransientSet @seen input)
             result
-            (do (vswap! seen conj input)
+            (do (vswap! seen conj! input)
                 (rf result input))))))))
   ([coll]
    (let [step (fn step [xs seen]
                 (lazy-seq
                   ((fn [[f :as xs] seen]
                      (when-let [s (seq xs)]
-                       (if (contains? seen f)
+                       (if (.contains ^clojure.lang.ITransientSet seen f)
                          (recur (rest s) seen)
-                         (cons f (step (rest s) (conj seen f))))))
+                         (cons f (step (rest s) (conj! seen f))))))
                    xs seen)))]
-     (step coll #{}))))
+     (step coll (transient #{})))))
 
 
 
