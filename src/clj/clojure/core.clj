@@ -5073,7 +5073,7 @@
          ([] (rf))
          ([result] (rf result))
          ([result input]
-          (if (.contains ^clojure.lang.ITransientSet @seen input)
+          (if (contains? @seen input)
             result
             (do (vswap! seen conj! input)
                 (rf result input))))))))
@@ -5082,7 +5082,7 @@
                 (lazy-seq
                   ((fn [[f :as xs] seen]
                      (when-let [s (seq xs)]
-                       (if (.contains ^clojure.lang.ITransientSet seen f)
+                       (if (contains? seen f)
                          (recur (rest s) seen)
                          (cons f (step (rest s) (conj! seen f))))))
                    xs seen)))]
