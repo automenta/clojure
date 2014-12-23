@@ -73,6 +73,12 @@
   (is (= (.. System (getProperties) (get "os.name"))
          (. (. System (getProperties)) (get "os.name")))))
 
+(deftest test-list-get
+  (let [al (java.util.Arrays/asList (object-array [1 2 3 4]))]
+    (is (nil? (get al -1)))
+    (is (nil? (get al 4)))
+    (is (= 2 (get al 1)))
+    (is (= 3 (get-in al [2])))))
 
 (deftest test-doto
   (let [m (doto (new java.util.HashMap)

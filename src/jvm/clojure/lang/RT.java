@@ -772,7 +772,7 @@ static Object getFrom(Object coll, Object key){
 		IPersistentSet set = (IPersistentSet) coll;
 		return set.get(key);
 	}
-	else if(key instanceof Number && (coll instanceof String || coll.getClass().isArray())) {
+    else if(key instanceof Number && (coll instanceof String || coll instanceof List || coll.getClass().isArray())) {
 		int n = ((Number) key).intValue();
 		if(n >= 0 && n < count(coll))
 			return nth(coll, n);
