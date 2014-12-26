@@ -2881,7 +2881,8 @@ static final public Pattern DEMUNGE_PATTERN;
 static {
 	// DEMUNGE_MAP maps strings to characters in the opposite
 	// direction that CHAR_MAP does, plus it maps "$" to '/'
-	IPersistentMap m = RT.map("$", '/');
+    ITransientMap m = PersistentHashMap.EMPTY.asTransient();
+    m = m.assoc("$", '/');
 	for(ISeq s = RT.seq(CHAR_MAP); s != null; s = s.next())
 		{
 		IMapEntry e = (IMapEntry) s.first();
@@ -2889,7 +2890,7 @@ static {
 		String escapeStr = (String) e.val();
 		m = m.assoc(escapeStr, origCh);
 		}
-	DEMUNGE_MAP = m;
+    DEMUNGE_MAP = m.persistent();
 
 	// DEMUNGE_PATTERN searches for the first of any occurrence of
 	// the strings that are keys of DEMUNGE_MAP.
@@ -2898,7 +2899,7 @@ static {
        // as desired.  Sorting string keys of DEMUNGE_MAP from longest to
        // shortest ensures correct matching behavior, even if some strings are
 	// prefixes of others.
-	Object[] mungeStrs = RT.toArray(RT.keys(m));
+    Object[] mungeStrs = RT.toArray(RT.keys(DEMUNGE_MAP));
 	Arrays.sort(mungeStrs, new Comparator() {
                 public int compare(Object s1, Object s2) {
                     return ((String) s2).length() - ((String) s1).length();
