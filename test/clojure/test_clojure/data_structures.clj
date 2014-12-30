@@ -1107,6 +1107,13 @@
   (is (thrown? IllegalArgumentException (assoc {} :b -2 :a)))
   (is (thrown? IllegalArgumentException (assoc! (transient {}) :b -2 :a))))
 
+(deftest test-merge
+  (are [x y] (= x y)
+       {:foo 3 :bar 5} (merge {:foo 3} {:bar 5})
+       {:foo 5} (merge {:foo 3} {:foo 5})
+       {:foo 3} (merge {} (clojure.lang.MapEntry. :foo 3))
+       {:foo 3} (merge {} [:foo 3])))
+
 (defn is-same-collection [a b]
   (let [msg (format "(class a)=%s (class b)=%s a=%s b=%s"
                     (.getName (class a)) (.getName (class b)) a b)]
