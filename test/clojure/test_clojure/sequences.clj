@@ -12,15 +12,146 @@
 (ns clojure.test-clojure.sequences
   (:require [clojure.test :refer :all]
             [clojure.test.check :as chk]
+            [clojure.test-clojure.transducers :refer [return-exc]]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :refer (defspec)])
-  (:import clojure.lang.IReduce))
+  (:import [clojure.lang ArraySeq PersistentList PersistentVector IReduce]
+           [java.util ArrayList List]
+           [java.lang Iterable]))
 
 (defn fmap-multi [f & gens]
   (gen/fmap
     (fn [args] (apply f args))
     (apply gen/tuple gens)))
+
+(defn as-rest-args [& args] args)
+
+(defn destructured-args
+  ([] (as-rest-args))
+  ([a] (as-rest-args a))
+  ([a b] (as-rest-args a b))
+  ([a b c] (as-rest-args a b c))
+  ([a b c d] (as-rest-args a b c d))
+  ([a b c d e & rst] (apply as-rest-args a b c d e rst)))
+
+(defn map-entry [s]
+  (if (= (count s) 2)
+    (first {(first s) (second s)})
+    s))
+
+(defn iterator [s]
+  (iterator-seq
+    (.iterator
+      (if (instance? Iterable s)
+        s
+        (or (seq s) ())))))
+
+(defmacro literal [s]
+  `{:val ~s :desc '~s})
+
+(defmacro call-last [& forms]
+  `{:val (fn [s#] (~@forms s#))
+    :desc '~forms})
+
+(defn array-list [s]
+  (if (instance? List s)
+    (ArrayList. s)
+    (ArrayList. (or (seq s) ()))))
+
+(defn enumeration [s]
+  (->> s (into []) java.util.Collections/enumeration enumeration-seq))
+
+(def id-actions
+  [(literal seq)
+   (literal into-array)
+   (literal vec)
+   (call-last apply list)
+   (call-last map identity)
+   (call-last filter (constantly true))
+   (call-last into [])
+   (call-last apply vector)
+   (call-last into [] identity)
+   (call-last into [] (map identity))
+   (call-last sequence (map identity))
+   (literal enumeration)
+   (literal iterator)
+   (literal array-list)
+   (literal map-entry)
+   (call-last apply as-rest-args)
+   (call-last apply destructured-args)])
+
+(def transform-actions
+  [(literal next)
+   (literal rest)
+   (call-last cons :foo)
+   (call-last cons :bar)
+   (call-last cons nil)
+   (literal reverse)])
+
+(def empties
+  [(literal nil)
+   (literal ())
+   (literal [])
+   (literal #{})])
+
+(defn merge-lists* [id-acts transform-acts]
+  (if (seq id-acts)
+    (if (seq transform-acts)
+      (if-let [id-act (first id-acts)]
+        (lazy-seq
+          (cons id-act (merge-lists* (rest id-acts) transform-acts)))
+        (lazy-seq
+          (cons (first transform-acts) (merge-lists* (rest id-acts) (rest transform-acts)))))
+      id-acts)
+    transform-acts))
+
+(defn merge-lists [id-acts transform-acts]
+  (filter identity (merge-lists* id-acts transform-acts)))
+
+(defn apply-actions [coll actions]
+  (return-exc
+    (seq
+      ((->>
+         actions
+         (map :val)
+         reverse
+         (apply comp))
+       (:val coll)))))
+
+(defn desc [coll actions]
+  (concat ['->> (:desc coll)] (map :desc actions)))
+
+(def result-gen
+  (let [empty-gen (gen/elements empties)
+        id-gen (gen/vector (gen/elements (cons nil id-actions)))
+        xform-gen (gen/vector (gen/elements (cons nil transform-actions)))]
+    (fmap-multi
+      (fn [empty1 empty2 ids1 ids2 xforms]
+        (let [actions1 (merge-lists ids1 xforms)
+              actions2 (merge-lists ids2 xforms)
+              res1 (apply-actions empty1 actions1)
+              res2 (apply-actions empty2 actions2)
+              pass (= res1 res2)]
+          {:acts1 (desc empty1 actions1)
+           :acts2 (desc empty2 actions2)
+           :result1 res1
+           :result2 res2
+           :pass pass}))
+      empty-gen empty-gen id-gen id-gen xform-gen)))
+
+(deftest seq-gentest
+  (let [res (chk/quick-check 100000 (prop/for-all* [result-gen] :pass))]
+    (when-not (:result res)
+      (is
+        (:result res)
+        (->
+          res
+          :shrunk
+          :smallest
+          first
+          clojure.pprint/pprint
+          with-out-str)))))
 
 (defn maybe [g]
   (gen/one-of [(gen/return nil) g]))
