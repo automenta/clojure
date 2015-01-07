@@ -13,8 +13,7 @@
             [clojure.test :refer :all]
             [clojure.test.check :as chk]
             [clojure.test.check.generators :as gen]
-            [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :as ctest]))
+            [clojure.test.check.properties :as prop]))
 
 (defmacro fbind [source-gen f]
   `(gen/fmap
