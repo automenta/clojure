@@ -47,17 +47,17 @@ static public class Unbound extends AFn{
 }
 
 static class Frame{
-	final static Frame TOP = new Frame(PersistentHashMap.EMPTY, null);
-	//Var->TBox
-	Associative bindings;
-	//Var->val
+    final static Frame TOP = new Frame(PersistentHashMap.EMPTY, null);
+    //Var->TBox
+    IEditableMap bindings;
+    //Var->val
 //	Associative frameBindings;
-	Frame prev;
+    Frame prev;
 
-	public Frame(Associative bindings, Frame prev){
+    public Frame(IEditableMap bindings, Frame prev){
 //		this.frameBindings = frameBindings;
-		this.bindings = bindings;
-		this.prev = prev;
+        this.bindings = bindings;
+        this.prev = prev;
 	}
 
     	protected Object clone() {
@@ -316,7 +316,7 @@ synchronized public Object alterRoot(IFn fn, ISeq args) {
 
 public static void pushThreadBindings(Associative bindings){
 	Frame f = dvals.get();
-	Associative bmap = f.bindings;
+    ITransientMap bmap = f.bindings.asTransient();
 	for(ISeq bs = bindings.seq(); bs != null; bs = bs.next())
 		{
 		IMapEntry e = (IMapEntry) bs.first();
@@ -327,7 +327,7 @@ public static void pushThreadBindings(Associative bindings){
 		v.threadBound.set(true);
 		bmap = bmap.assoc(v, new TBox(Thread.currentThread(), e.val()));
 		}
-	dvals.set(new Frame(bmap, f));
+    dvals.set(new Frame((IEditableMap) bmap.persistent(), f));
 }
 
 public static void popThreadBindings(){
@@ -342,16 +342,16 @@ public static void popThreadBindings(){
 }
 
 public static Associative getThreadBindings(){
-	Frame f = dvals.get();
-	IPersistentMap ret = PersistentHashMap.EMPTY;
-	for(ISeq bs = f.bindings.seq(); bs != null; bs = bs.next())
-		{
-		IMapEntry e = (IMapEntry) bs.first();
+    Frame f = dvals.get();
+    ITransientMap ret = PersistentHashMap.EMPTY.asTransient();
+    for(ISeq bs = f.bindings.seq(); bs != null; bs = bs.next())
+        {
+        IMapEntry e = (IMapEntry) bs.first();
 		Var v = (Var) e.key();
 		TBox b = (TBox) e.val();
 		ret = ret.assoc(v, b.val);
 		}
-	return ret;
+    return ret.persistent();
 }
 
 public final TBox getThreadBinding(){
