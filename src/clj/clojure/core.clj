@@ -772,7 +772,7 @@
   {:added "1.0"}
   ([test then] `(if-not ~test ~then nil))
   ([test then else]
-   `(if (not ~test) ~then ~else)))
+   `(if ~test ~else ~then)))
 
 (defn identical?
   "Tests if 2 arguments are the same object"
