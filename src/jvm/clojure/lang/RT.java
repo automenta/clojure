@@ -424,6 +424,14 @@ static public void load(String scriptbase) throws IOException, ClassNotFoundExce
 	load(scriptbase, true);
 }
 
+static public void maybeCompile(String scriptbase) throws IOException {
+    String classfile = scriptbase + LOADER_SUFFIX + ".class";
+    String cljfile = scriptbase + ".clj";
+    URL classURL = getResource(baseLoader(),classfile);
+    if (classURL == null)
+        compile(cljfile);
+}
+
 static public void load(String scriptbase, boolean failIfNotFound) throws IOException, ClassNotFoundException{
 	String classfile = scriptbase + LOADER_SUFFIX + ".class";
 	String cljfile = scriptbase + ".clj";

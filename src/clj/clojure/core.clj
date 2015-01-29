@@ -6149,7 +6149,12 @@ fails, attempts to require sym's namespace and retries."
   {:added "1.0"}
   [lib]
   (binding [*compile-files* true]
-    (load-one lib true true))
+    (if (contains? @*loaded-libs* lib)
+      (let [path (root-resource lib)]
+        (clojure.lang.RT/maybeCompile (if (.startsWith path "/")
+                                        (subs path 1)
+                                        path)))
+      (load-one lib true true)))
   lib)
 
 ;;;;;;;;;;;;; nested associative ops ;;;;;;;;;;;
