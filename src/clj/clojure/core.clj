@@ -3120,7 +3120,14 @@
   ([keyfn coll]
    (sort-by keyfn compare coll))
   ([keyfn ^java.util.Comparator comp coll]
-   (sort (fn [x y] (. comp (compare (keyfn x) (keyfn y)))) coll)))
+   (with-meta
+     (map
+       second
+       (sort
+         (fn [x y]
+           (. comp (compare (first x) (first y))))
+         (map (fn [x] [(keyfn x) x]) coll)))
+     (meta coll))))
 
 (defn dorun
   "When lazy sequences are produced via functions that have side
