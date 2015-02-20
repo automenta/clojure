@@ -4322,14 +4322,15 @@
    :static true}
   ([n]
      (fn [rf]
-       (let [iv (volatile! -1)]
+       (let [iv (volatile! 1)]
          (fn
            ([] (rf))
            ([result] (rf result))
            ([result input]
-              (let [i (vswap! iv inc)]
-                (if (zero? (rem i n))
-                  (rf result input)
+              (let [i (vswap! iv dec)]
+                (if (zero? i)
+                  (do (vreset! iv n)
+                      (rf result input))
                   result)))))))
   ([n coll]
      (lazy-seq
