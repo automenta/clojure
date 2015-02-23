@@ -11,10 +11,117 @@
 
 (ns clojure.test-clojure.sequences
   (:require [clojure.test :refer :all]
+            [clojure.test.check :as chk]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :refer (defspec)])
   (:import clojure.lang.IReduce))
+
+(defn fmap-multi [f & gens]
+  (gen/fmap
+    (fn [args] (apply f args))
+    (apply gen/tuple gens)))
+
+(defn maybe [g]
+  (gen/one-of [(gen/return nil) g]))
+
+(def gen-kvs
+  ; odd and even kvs count has very diffent behavior
+  ; so shrink-2 will give us better shrinking.
+  (-> gen/int maybe (gen/vector 1 20) gen/shrink-2))
+
+(defn do-not-assoc [{:keys [kvs start-map] :as m}]
+  (let [pairs (map vec (partition 2 kvs))]
+    (merge
+      m
+      {:into-m (into start-map pairs)
+       :persist-reduce (reduce
+                         (fn [m [k v]] (assoc m k v))
+                         start-map
+                         pairs)
+       :transient-reduce (persistent!
+                           (reduce
+                             (fn [m [k v]] (assoc! m k v))
+                             (transient start-map)
+                             pairs))
+       :merged (merge start-map (into {} pairs))})))
+
+(defn do-persistent-assoc [{:keys [kvs start-map] :as m}]
+  (try
+    (assoc
+      m
+      :persistent-apply-result
+      (apply assoc start-map kvs))
+    (catch Exception e
+      (assoc m :persistent-apply-exc e))))
+
+(defn do-transient-assoc [{:keys [kvs start-map] :as m}]
+  (try
+    (assoc
+      m
+      :transient-apply-result
+      (persistent!
+        (apply assoc! (transient start-map) kvs)))
+    (catch Exception e
+      (assoc m :transient-apply-exc e))))
+
+(defn check-success
+  [{:keys [persistent-apply-exc transient-apply-exc] :as m}]
+  (assoc
+    m
+    :pass
+    (and
+      (apply = ((juxt
+                  :into-m :persist-reduce :transient-reduce :merged
+                  :persistent-apply-result :transient-apply-result) m))
+      (not persistent-apply-exc)
+      (not transient-apply-exc))))
+
+(defn check-failure
+  [{:keys [persistent-apply-exc transient-apply-exc
+           persistent-apply-result transient-apply-result] :as m}]
+  (assoc
+    m
+    :pass
+    (and
+      persistent-apply-exc
+      transient-apply-exc
+      (not persistent-apply-result)
+      (not transient-apply-result))))
+
+(def gen-assoc-test
+  (fmap-multi
+    (fn [kvs m]
+      (try
+        (let [m {:kvs kvs :start-map m}]
+          (if (even? (count kvs))
+            (->
+              m
+              do-not-assoc
+              do-persistent-assoc
+              do-transient-assoc
+              check-success)
+            (->
+              m
+              do-persistent-assoc
+              do-transient-assoc
+              check-failure)))
+        (catch Exception e
+          {:exc e :pass false :kvs kvs :m m})))
+    gen-kvs (gen/map (maybe gen/int) (maybe gen/int))))
+
+(deftest assoc-test
+  (let [res (chk/quick-check 1000 (prop/for-all* [gen-assoc-test] :pass))]
+    (when-not (:result res)
+      (let [small (-> res :shrunk :smallest first)]
+        (is
+          (:result res)
+          (->
+            small
+            clojure.pprint/pprint
+            with-out-str))
+        (when-let [e (:exc small)]
+          (throw e))))))
 
 ;; *** Tests ***
 
