@@ -14,6 +14,7 @@ package clojure.lang;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -37,7 +38,7 @@ public static class Node implements Serializable {
 }
 
 final static AtomicReference<Thread> NOEDIT = new AtomicReference<Thread>(null);
-public final static Node EMPTY_NODE = new Node(NOEDIT, new Object[32]);
+public final static Node EMPTY_NODE = new Node(NOEDIT);
 
 final int cnt;
 public final int shift;
@@ -46,7 +47,7 @@ public final Object[] tail;
 final IPersistentMap _meta;
 
 
-public final static PersistentVector EMPTY = new PersistentVector(0, 5, EMPTY_NODE, new Object[]{});
+public final static PersistentVector EMPTY = new PersistentVector(0, 5, EMPTY_NODE, new Object[0]);
 
 private static final IFn TRANSIENT_VECTOR_CONJ = new AFn() {
     public Object invoke(Object coll, Object val) {
@@ -82,8 +83,7 @@ static public PersistentVector create(ISeq items){
     } else if(i == 32) {   // exactly 32, skip copy
         return new PersistentVector(32, 5, EMPTY_NODE, arr);
     } else {  // <32, copy to minimum array and construct
-        Object[] arr2 = new Object[i];
-        System.arraycopy(arr, 0, arr2, 0, i);
+        Object[] arr2 = Arrays.copyOf(arr, i);
         return new PersistentVector(i, 5, EMPTY_NODE, arr2);
     }
 }
@@ -112,6 +112,10 @@ static public PersistentVector create(Iterable items){
 }
 
 static public PersistentVector create(Object... items){
+    int size = items.length;
+    if (size <= 32) {
+        return new PersistentVector(items.length, 5, PersistentVector.EMPTY_NODE, items.clone());
+    }
 	TransientVector ret = EMPTY.asTransient();
 	for(Object item : items)
 		ret = ret.conj(item);
