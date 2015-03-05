@@ -223,7 +223,6 @@ public IPersistentMap meta(){
 
 public PersistentVector cons(Object val){
 	//room in tail?
-//	if(tail.length < 32)
 	if(cnt - tailoff() < 32)
 		{
 		Object[] newTail = new Object[tail.length + 1];

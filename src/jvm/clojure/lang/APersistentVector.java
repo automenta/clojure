@@ -555,9 +555,9 @@ public static class SubVector extends APersistentVector implements IObj{
 	public SubVector(IPersistentMap meta, IPersistentVector v, int start, int end){
 		this._meta = meta;
 
-		if(v instanceof APersistentVector.SubVector)
+        if(v instanceof SubVector)
 			{
-			APersistentVector.SubVector sv = (APersistentVector.SubVector) v;
+            SubVector sv = (SubVector) v;
 			start += sv.start;
 			end += sv.start;
 			v = sv.v;
