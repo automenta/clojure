@@ -3253,7 +3253,12 @@
                                                (do
                                                  ~subform
                                                  ~@(when needrec [recform]))
-                                               ~recform)]))
+                                               ~recform)]
+                         (= k :when-not) [false `(if-not ~v
+                                                   (do
+                                                     ~subform
+                                                     ~@(when needrec [recform]))
+                                                   ~recform)]))
                      (let [seq- (gensym "seq_")
                            chunk- (with-meta (gensym "chunk_")
                                              {:tag 'clojure.lang.IChunk})
@@ -4664,7 +4669,7 @@
    Collections are iterated in a nested fashion, rightmost fastest,
    and nested coll-exprs can refer to bindings created in prior
    binding-forms.  Supported modifiers are: :let [binding-form expr ...],
-   :while test, :when test.
+   :while test, :when test :when-not test.
 
   (take 100 (for [x (range 100000000) y (range 1000000) :while (< y x)] [x y]))"
   {:added "1.0"}
@@ -4690,6 +4695,9 @@
                                      (= k :when) `(if ~v
                                                     ~(do-mod etc)
                                                     (recur (rest ~gxs)))
+                                     (= k :when-not) `(if-not ~v
+                                                        ~(do-mod etc)
+                                                        (recur (rest ~gxs)))
                                      (keyword? k) (err "Invalid 'for' keyword " k)
                                      next-groups
                                       `(let [iterys# ~(emit-bind next-groups)
@@ -4717,6 +4725,10 @@
                                                          ~(do-cmod etc)
                                                          (recur
                                                            (unchecked-inc ~gi)))
+                                          (= k :when-not) `(if-not ~v
+                                                             ~(do-cmod etc)
+                                                             (recur
+                                                               (unchecked-inc ~gi)))
                                           (keyword? k)
                                             (err "Invalid 'for' keyword " k)
                                           :else
