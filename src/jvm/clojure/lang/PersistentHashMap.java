@@ -123,7 +123,7 @@ static int hash(Object k){
 public boolean containsKey(Object key){
 	if(key == null)
 		return hasNull;
-	return (root != null) ? root.find(0, hash(key), key, NOT_FOUND) != NOT_FOUND : false;
+    return root != null && root.find(0, hash(key), key, NOT_FOUND) != NOT_FOUND;
 }
 
 public IMapEntry entryAt(Object key){
@@ -229,7 +229,7 @@ public Iterator valIterator(){
 }
 
 public Object kvreduce(IFn f, Object init){
-    init = hasNull?f.invoke(init,null,nullValue):init;
+    init = hasNull ? f.invoke(init,null,nullValue) : init;
 	if(RT.isReduced(init))
 		return ((IDeref)init).deref();
 	if(root != null){
