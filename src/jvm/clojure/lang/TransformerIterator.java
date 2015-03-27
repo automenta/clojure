@@ -49,6 +49,8 @@ private TransformerIterator(IFn xform, Iterator sourceIter, boolean multi) {
             return acc;
         }
     });
+    if(! (this.xf instanceof IFn))
+        throw new IllegalArgumentException("Invalid transformation");
     this.multi = multi;
 }
 
