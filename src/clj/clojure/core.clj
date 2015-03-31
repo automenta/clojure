@@ -6841,12 +6841,23 @@ fails, attempts to require sym's namespace and retries."
   [_ f init]
   init)
 
- ;;slow path default
+ ;;slow path defaults
  clojure.lang.IPersistentMap
  (kv-reduce 
   [amap f init]
   (reduce (fn [ret [k v]] (f ret k v)) init amap))
 
+ clojure.lang.IPersistentVector
+ (kv-reduce
+  [vec f init]
+  (reduce
+    (let [vn (volatile! -1)]
+      (fn [ret v]
+        (f ret (vswap! vn inc) v)))
+    init
+    vec))
+
+ ;;fast path where available
  clojure.lang.IKVReduce
  (kv-reduce 
   [amap f init]
