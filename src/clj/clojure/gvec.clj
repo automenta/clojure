@@ -550,7 +550,7 @@
      (.aset am arr 3 x4)
      (Vec. am 4 5 EMPTY-NODE arr nil)))
   ([t x1 x2 x3 x4 & xn]
-   (loop [v  (vector-of t x1 x2 x3 x4)
+   (loop [v ^clojure.core.Vec (vector-of t x1 x2 x3 x4)
           xn xn]
      (if xn
        (recur (conj v (first xn)) (next xn))
