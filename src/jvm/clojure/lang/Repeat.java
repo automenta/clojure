@@ -12,7 +12,7 @@ package clojure.lang;
 
 /* Alex Miller, Dec 5, 2014 */
 
-public class Repeat extends ASeq implements IReduce {
+public class Repeat extends ASeq implements IReduce, IPending {
 
 private static final long INFINITE = -1;
 
@@ -39,6 +39,10 @@ public static ISeq create(long count, Object val){
     if(count <= 0)
         return PersistentList.EMPTY;
     return new Repeat(count, val);
+}
+
+public boolean isRealized() {
+    return true;
 }
 
 public Object first(){

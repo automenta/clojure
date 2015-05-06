@@ -18,7 +18,7 @@ import java.util.NoSuchElementException;
 /**
  * Implements the special common case of a finite range based on long start, end, and step.
  */
-public class LongRange extends ASeq implements Counted, IChunkedSeq, IReduce {
+public class LongRange extends ASeq implements Counted, IChunkedSeq, IReduce, IPending {
 
 private static final int CHUNK_SIZE = 32;
 
@@ -107,6 +107,10 @@ public Obj withMeta(IPersistentMap meta){
     if(meta == _meta)
         return this;
     return new LongRange(meta, start, end, step, boundsCheck, _chunk, _chunkNext);
+}
+
+public boolean isRealized() {
+    return true;
 }
 
 public Object first() {

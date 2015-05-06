@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * Implements generic numeric (potentially infinite) range.
  */
-public class Range extends ASeq implements IChunkedSeq, IReduce {
+public class Range extends ASeq implements IChunkedSeq, IReduce, IPending {
 
 private static final int CHUNK_SIZE = 32;
 
@@ -100,6 +100,10 @@ public Obj withMeta(IPersistentMap meta){
 	if(meta == _meta)
 		return this;
 	return new Range(meta, end, start, step, boundsCheck, _chunk, _chunkNext);
+}
+
+public boolean isRealized() {
+    return true;
 }
 
 public Object first(){
