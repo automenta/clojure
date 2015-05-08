@@ -507,9 +507,9 @@
 
 (defmacro ^:private ams-check [t]
   `(let [am# (ams ~t)]
-     (if am#
-       am#
-       (throw (IllegalArgumentException. (str "Unrecognized type " ~t))))))
+     (when-not am#
+       (throw (IllegalArgumentException. (str "Unrecognized type " ~t))))
+     ^clojure.core.ArrayManager am#))
 
 (defn vector-of
   "Creates a new vector of a single primitive type t, where t is one
@@ -521,28 +521,28 @@
   {:added "1.2"
    :arglists '([t] [t & elements])}
   ([t]
-   (let [^clojure.core.ArrayManager am (ams-check t)]
+   (let [am (ams-check t)]
      (Vec. am 0 5 EMPTY-NODE (.array am 0) nil)))
   ([t x1]
-   (let [^clojure.core.ArrayManager am (ams-check t)
+   (let [am (ams-check t)
          arr (.array am 1)]
      (.aset am arr 0 x1)
      (Vec. am 1 5 EMPTY-NODE arr nil)))
   ([t x1 x2]
-   (let [^clojure.core.ArrayManager am (ams-check t)
+   (let [am (ams-check t)
          arr (.array am 2)]
      (.aset am arr 0 x1)
      (.aset am arr 1 x2)
      (Vec. am 2 5 EMPTY-NODE arr nil)))
   ([t x1 x2 x3]
-   (let [^clojure.core.ArrayManager am (ams-check t)
+   (let [am (ams-check t)
          arr (.array am 3)]
      (.aset am arr 0 x1)
      (.aset am arr 1 x2)
      (.aset am arr 2 x3)
      (Vec. am 3 5 EMPTY-NODE arr nil)))
   ([t x1 x2 x3 x4]
-   (let [^clojure.core.ArrayManager am (ams-check t)
+   (let [am (ams-check t)
          arr (.array am 4)]
      (.aset am arr 0 x1)
      (.aset am arr 1 x2)
