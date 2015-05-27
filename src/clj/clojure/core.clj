@@ -179,7 +179,7 @@
  vector? (fn ^:static vector? [x] (instance? clojure.lang.IPersistentVector x)))
 
 (def
- ^{:arglists '([map key val] [map key val & kvs])
+ ^{:arglists '([map] [map key val] [map key val & kvs])
    :doc "assoc[iate]. When applied to a map, returns a new map of the
     same (hashed/sorted) type, that contains the mapping of key(s) to
     val(s). When applied to a vector, returns a new vector that
@@ -188,6 +188,7 @@
    :static true}
  assoc
  (fn ^:static assoc
+   ([map] map)
    ([map key val] (clojure.lang.RT/assoc map key val))
    ([map key val & kvs]
     (let [ret (clojure.lang.RT/assoc map key val)]
@@ -3365,7 +3366,11 @@
   ([] (transient []))
   ([coll] coll)
   ([^clojure.lang.ITransientCollection coll x]
-     (.conj coll x)))
+     (.conj coll x))
+  ([^clojure.lang.ITransientCollection coll x & xs]
+     (if xs
+       (recur (conj! coll x) (first xs) (next xs))
+       (conj! coll x))))
 
 (defn assoc!
   "When applied to a transient map, adds mapping of key(s) to
@@ -3373,17 +3378,22 @@
   Note - index must be <= (count vector). Returns coll."
   {:added "1.1"
    :static true}
+  ([^clojure.lang.ITransientAssociative coll] coll)
   ([^clojure.lang.ITransientAssociative coll key val] (.assoc coll key val))
   ([^clojure.lang.ITransientAssociative coll key val & kvs]
-   (let [ret (.assoc coll key val)]
-     (if kvs
-       (recur ret (first kvs) (second kvs) (nnext kvs))
-       ret))))
+     (let [ret (.assoc coll key val)]
+       (if kvs
+         (if (next kvs)
+           (recur ret (first kvs) (second kvs) (nnext kvs))
+           (throw (IllegalArgumentException.
+                   "assoc! expects even number of arguments after map/vector, found odd number")))
+         ret))))
 
 (defn dissoc!
   "Returns a transient map that doesn't contain a mapping for key(s)."
   {:added "1.1"
    :static true}
+  ([^clojure.lang.ITransientMap map] map)
   ([^clojure.lang.ITransientMap map key] (.without map key))
   ([^clojure.lang.ITransientMap map key & ks]
    (let [ret (.without map key)]

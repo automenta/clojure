@@ -1094,15 +1094,18 @@
   (is (thrown? IllegalArgumentException
                (array-map 1 2 3))))
 
-(deftest test-assoc
-  (are [x y] (= x y)
-       [4] (assoc [] 0 4)
-       [5 -7] (assoc [] 0 5 1 -7)
-       {:a 1} (assoc {} :a 1)
-       {nil 1} (assoc {} nil 1)
-       {:a 2 :b -2} (assoc {} :b -2 :a 2))
+(deftest test-assoc-assoc!
+  (are [x y z] (= x
+                  (apply assoc y z)
+                  (persistent! (apply assoc! (transient y) z)))
+       [4] [] '(0 4)
+       [5 -7] [] '(0 5 1 -7)
+       {:a 1} {} '(:a 1)
+       {:a 2 :b -2} {} '(:b -2 :a 2))
   (is (thrown? IllegalArgumentException (assoc [] 0 5 1)))
-  (is (thrown? IllegalArgumentException (assoc {} :b -2 :a))))
+  (is (thrown? IllegalArgumentException (assoc! (transient []) 0 5 1)))
+  (is (thrown? IllegalArgumentException (assoc {} :b -2 :a)))
+  (is (thrown? IllegalArgumentException (assoc! (transient {}) :b -2 :a))))
 
 (defn is-same-collection [a b]
   (let [msg (format "(class a)=%s (class b)=%s a=%s b=%s"
