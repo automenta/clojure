@@ -303,6 +303,9 @@ static public void addURL(Object url) throws MalformedURLException{
 
 public static boolean checkSpecAsserts = Boolean.getBoolean("clojure.spec.check-asserts");
 public static boolean instrumentMacros = ! Boolean.getBoolean("clojure.spec.skip-macros");
+
+static IPersistentSet loadedPaths = set();
+
 static volatile boolean CHECK_SPECS = false;
 
 static{
@@ -454,7 +457,10 @@ static public void load(String scriptbase, boolean failIfNotFound) throws IOExce
 					RT.mapUniqueKeys(CURRENT_NS, CURRENT_NS.deref(),
 					       WARN_ON_REFLECTION, WARN_ON_REFLECTION.deref()
 							,RT.UNCHECKED_MATH, RT.UNCHECKED_MATH.deref()));
-			loaded = (loadClassForName(scriptbase.replace('/', '.') + LOADER_SUFFIX) != null);
+            String className = scriptbase.replace('/', '.') + LOADER_SUFFIX;
+            loaded = (classForNameNonLoadingSafe(className) != null);
+            if (loaded && !loadedPaths.contains(scriptbase))
+                loadClassForName(className);
 		}
 		finally {
 			Var.popThreadBindings();
@@ -465,10 +471,13 @@ static public void load(String scriptbase, boolean failIfNotFound) throws IOExce
 			compile(scriptfile);
 		else
 			loadResourceScript(RT.class, scriptfile);
+        loaded = true;
 	}
 	else if(!loaded && failIfNotFound)
 		throw new FileNotFoundException(String.format("Could not locate %s, %s or %s on classpath.%s", classfile, cljfile, cljcfile,
 			scriptbase.contains("_") ? " Please check that namespaces with dashes use underscores in the Clojure file name." : ""));
+    if(loaded)
+        loadedPaths = (IPersistentSet) loadedPaths.cons(scriptbase);
 }
 
 static public void init() {
@@ -2249,10 +2258,10 @@ static public Class classForNameNonLoading(String name) {
 	return classForName(name, false, baseLoader());
 }
 
-static public Class loadClassForName(String name) {
+static public Class classForNameNonLoadingSafe(String name) {
 	try
 		{
-		classForNameNonLoading(name);
+        return classForNameNonLoading(name);
 		}
 	catch(Exception e)
 		{
@@ -2261,6 +2270,11 @@ static public Class loadClassForName(String name) {
 		else
 			throw Util.sneakyThrow(e);
 		}
+}
+
+static public Class loadClassForName(String name) {
+    if (classForNameNonLoadingSafe(name) == null)
+        return null;
 	return classForName(name);
 }
 
