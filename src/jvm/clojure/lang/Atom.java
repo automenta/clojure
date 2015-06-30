@@ -151,11 +151,16 @@ public boolean compareAndSet(Object oldv, Object newv){
 }
 
 public Object reset(Object newval){
-	Object oldval = state.get();
 	validate(newval);
-	state.set(newval);
-	notifyWatches(oldval, newval);
-	return newval;
+    for(;;)
+        {
+        Object oldval = state.get();
+        if(state.compareAndSet(oldval, newval))
+            {
+            notifyWatches(oldval, newval);
+            return newval;
+            }
+        }
 }
 
 public IPersistentVector resetVals(Object newv){

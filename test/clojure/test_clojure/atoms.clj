@@ -42,3 +42,21 @@
 (deftest reset-on-deref-reset-equality
   (let [a (atom :usual-value)]
     (is (= :usual-value (reset! a (first (reset-vals! a :almost-never-seen-value)))))))
+
+(deftest reset-watchers-serialized
+  (testing "contentious resetting on an atom should serialize watches"
+    (let [my-atom (atom nil
+                        :validator (fn [x] (Thread/sleep 10) true))
+          watch-results (atom [])]
+      ;; record old values
+      (add-watch my-atom :watcher (fn [k a o n]
+                                    (swap! watch-results conj o)))
+      (dotimes [x 10]
+        (.start (Thread. (fn []
+                           (dotimes [x 100]
+                             (let [uuid (java.util.UUID/randomUUID)]
+                               (reset! my-atom uuid)))))))
+      (while (< (count @watch-results) 1000)
+        (Thread/sleep 100))
+      ;; all old values should be unique
+      (is (= 1000 (count (set @watch-results)))))))
