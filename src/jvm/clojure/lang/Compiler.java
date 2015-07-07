@@ -1190,29 +1190,23 @@ static class InstanceFieldExpr extends FieldExpr implements AssignableExpr{
 	}
 
 	public void emit(C context, ObjExpr objx, GeneratorAdapter gen){
+        target.emit(C.EXPRESSION, objx, gen);
+        gen.visitLineNumber(line, gen.mark());
 		if(targetClass != null && field != null)
 			{
-			target.emit(C.EXPRESSION, objx, gen);
-			gen.visitLineNumber(line, gen.mark());
 			gen.checkCast(getType(targetClass));
 			gen.getField(getType(targetClass), fieldName, Type.getType(field.getType()));
 			//if(context != C.STATEMENT)
 			HostExpr.emitBoxReturn(objx, gen, field.getType());
-			if(context == C.STATEMENT)
-				{
-				gen.pop();
-				}
 			}
 		else
 			{
-			target.emit(C.EXPRESSION, objx, gen);
-			gen.visitLineNumber(line, gen.mark());
 			gen.push(fieldName);
 			gen.push(requireField);
 			gen.invokeStatic(REFLECTOR_TYPE, invokeNoArgInstanceMember);
-			if(context == C.STATEMENT)
-				gen.pop();
 			}
+        if(context == C.STATEMENT)
+            gen.pop();
 	}
 
 	public boolean hasJavaClass() {
@@ -1231,9 +1225,9 @@ static class InstanceFieldExpr extends FieldExpr implements AssignableExpr{
 
 	public void emitAssign(C context, ObjExpr objx, GeneratorAdapter gen,
 	                       Expr val){
+        target.emit(C.EXPRESSION, objx, gen);
 		if(targetClass != null && field != null)
 			{
-			target.emit(C.EXPRESSION, objx, gen);
 			gen.checkCast(getType(targetClass));
 			val.emit(C.EXPRESSION, objx, gen);
 			gen.visitLineNumber(line, gen.mark());
@@ -1243,7 +1237,6 @@ static class InstanceFieldExpr extends FieldExpr implements AssignableExpr{
 			}
 		else
 			{
-			target.emit(C.EXPRESSION, objx, gen);
 			gen.push(fieldName);
 			val.emit(C.EXPRESSION, objx, gen);
 			gen.visitLineNumber(line, gen.mark());
