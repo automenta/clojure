@@ -138,7 +138,7 @@ _AMP_, null
 );
 
 private static final int MAX_POSITIONAL_ARITY = 20;
-private static final Type OBJECT_TYPE;
+private static final Type OBJECT_TYPE = Type.getType(Object.class);
 private static final Type KEYWORD_TYPE = Type.getType(Keyword.class);
 private static final Type VAR_TYPE = Type.getType(Var.class);
 private static final Type SYMBOL_TYPE = Type.getType(Symbol.class);
@@ -171,7 +171,6 @@ private static final Type[] EXCEPTION_TYPES = {};
 
 static
 	{
-	OBJECT_TYPE = Type.getType(Object.class);
 	ARG_TYPES = new Type[MAX_POSITIONAL_ARITY + 2][];
 	for(int i = 0; i <= MAX_POSITIONAL_ARITY; ++i)
 		{
