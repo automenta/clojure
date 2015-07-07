@@ -1231,7 +1231,8 @@ static class InstanceFieldExpr extends FieldExpr implements AssignableExpr{
 			gen.checkCast(getType(targetClass));
 			val.emit(C.EXPRESSION, objx, gen);
 			gen.visitLineNumber(line, gen.mark());
-			gen.dupX1();
+      if (context != C.STATEMENT)
+              gen.dupX1();
 			HostExpr.emitUnboxArg(objx, gen, field.getType());
 			gen.putField(getType(targetClass), fieldName, Type.getType(field.getType()));
 			}
@@ -1241,9 +1242,9 @@ static class InstanceFieldExpr extends FieldExpr implements AssignableExpr{
 			val.emit(C.EXPRESSION, objx, gen);
 			gen.visitLineNumber(line, gen.mark());
 			gen.invokeStatic(REFLECTOR_TYPE, setInstanceFieldMethod);
+            if(context == C.STATEMENT)
+                gen.pop();
 			}
-		if(context == C.STATEMENT)
-			gen.pop();
 	}
 }
 
