@@ -1333,11 +1333,10 @@ static class StaticFieldExpr extends FieldExpr implements AssignableExpr{
 	                       Expr val){
 		val.emit(C.EXPRESSION, objx, gen);
 		gen.visitLineNumber(line, gen.mark());
-		gen.dup();
+        if(context != C.STATEMENT)
+            gen.dup();
 		HostExpr.emitUnboxArg(objx, gen, field.getType());
 		gen.putStatic(Type.getType(c), fieldName, Type.getType(field.getType()));
-		if(context == C.STATEMENT)
-			gen.pop();
 	}
 
 
