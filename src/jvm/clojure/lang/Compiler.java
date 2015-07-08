@@ -1413,7 +1413,7 @@ static abstract class MethodExpr extends HostExpr{
 					final MaybePrimitiveExpr pe = (MaybePrimitiveExpr) e;
 					pe.emitUnboxed(C.EXPRESSION, objx, gen);
 					if(RT.booleanCast(RT.UNCHECKED_MATH.deref()))
-						gen.invokeStatic(RT_TYPE, Method.getMethod("int uncheckedIntCast(long)"));
+                        gen.visitInsn(L2I);
 					else
 						gen.invokeStatic(RT_TYPE, Method.getMethod("int intCast(long)"));
 					}
