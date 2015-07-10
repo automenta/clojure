@@ -2981,45 +2981,12 @@ public static class EmptyExpr implements Expr{
 					return IPersistentSet.class;
 				else
 					throw new UnsupportedOperationException("Unknown Collection type");
-	}
-}
-
-public static class ListExpr implements Expr{
-	public final IPersistentVector args;
-	final static Method arrayToListMethod = Method.getMethod("clojure.lang.ISeq arrayToList(Object[])");
-
-
-	public ListExpr(IPersistentVector args){
-		this.args = args;
-	}
-
-	public Object eval() {
-		IPersistentVector ret = PersistentVector.EMPTY;
-		for(int i = 0; i < args.count(); i++)
-			ret = (IPersistentVector) ret.cons(((Expr) args.nth(i)).eval());
-		return ret.seq();
-	}
-
-	public void emit(C context, ObjExpr objx, GeneratorAdapter gen){
-		MethodExpr.emitArgsAsArray(args, objx, gen);
-		gen.invokeStatic(RT_TYPE, arrayToListMethod);
-		if(context == C.STATEMENT)
-			gen.pop();
-	}
-
-	public boolean hasJavaClass() {
-		return true;
-	}
-
-	public Class getJavaClass() {
-		return IPersistentList.class;
-	}
-
+    }
 }
 
 public static class MapExpr implements Expr{
-	public final IPersistentVector keyvals;
-	final static Method mapMethod = Method.getMethod("clojure.lang.IPersistentMap map(Object[])");
+    public final IPersistentVector keyvals;
+    final static Method mapMethod = Method.getMethod("clojure.lang.IPersistentMap map(Object[])");
 	final static Method mapUniqueKeysMethod = Method.getMethod("clojure.lang.IPersistentMap mapUniqueKeys(Object[])");
 
 
