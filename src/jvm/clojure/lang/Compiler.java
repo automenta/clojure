@@ -3651,13 +3651,13 @@ static class InvokeExpr implements Expr{
 			{
 			Var fvar = ((VarExpr)fexpr).var;
 			Var pvar =  (Var)RT.get(fvar.meta(), protocolKey);
-			if(pvar != null && PROTOCOL_CALLSITES.isBound())
-				{
-				this.isProtocol = true;
-				this.siteIndex = registerProtocolCallsite(((VarExpr)fexpr).var);
+            if(pvar != null && PROTOCOL_CALLSITES.isBound())
+                {
+                this.isProtocol = true;
+                this.siteIndex = registerProtocolCallsite(fvar);
                 this.classLocal = getAndIncLocalNum();
-				Object pon = RT.get(pvar.get(), onKey);
-				this.protocolOn = HostExpr.maybeClass(pon,false);
+                Object pon = RT.get(pvar.get(), onKey);
+                this.protocolOn = HostExpr.maybeClass(pon,false);
 				if(this.protocolOn != null)
 					{
 					IPersistentMap mmap = (IPersistentMap) RT.get(pvar.get(), methodMapKey);
