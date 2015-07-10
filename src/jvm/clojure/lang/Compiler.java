@@ -2022,9 +2022,8 @@ static class NilExpr extends LiteralExpr{
 	}
 
 	public void emit(C context, ObjExpr objx, GeneratorAdapter gen){
-		gen.visitInsn(Opcodes.ACONST_NULL);
-		if(context == C.STATEMENT)
-			gen.pop();
+        if(context != C.STATEMENT)
+            gen.visitInsn(Opcodes.ACONST_NULL);
 	}
 
 	public boolean hasJavaClass(){
