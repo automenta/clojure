@@ -3114,6 +3114,7 @@ public static class MapExpr implements Expr{
 			}
 
 		Expr ret = new MapExpr(keyvals);
+        // TODO: should be able to return constant for meta too.
 		if(form instanceof IObj && ((IObj) form).meta() != null)
 			return new MetaExpr(ret, MapExpr
 					.parse(context == C.EVAL ? context : C.EXPRESSION, ((IObj) form).meta()));
@@ -3186,6 +3187,7 @@ public static class SetExpr implements Expr{
 			}
 		Expr ret = new SetExpr(keys);
 		if(form instanceof IObj && ((IObj) form).meta() != null)
+            // Again, should be able to manage constant
 			return new MetaExpr(ret, MapExpr
 					.parse(context == C.EVAL ? context : C.EXPRESSION, ((IObj) form).meta()));
 		else if(constant)
