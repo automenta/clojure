@@ -3875,7 +3875,7 @@ static class InvokeExpr implements Expr{
 				}
 			}
 
-                if(fexpr instanceof KeywordExpr && RT.count(form) == 2 && KEYWORD_CALLSITES.isBound() && ((KeywordExpr)fexpr).k.getNamespace() == null)
+        if(fexpr instanceof KeywordExpr && RT.count(form) == 2 && KEYWORD_CALLSITES.isBound() && ((KeywordExpr)fexpr).k.getNamespace() == null)
 			{
 //			fexpr = new ConstantExpr(new KeywordCallSite(((KeywordExpr)fexpr).k));
 			Expr target = analyze(context, RT.second(form));
