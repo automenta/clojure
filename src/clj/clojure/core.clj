@@ -2529,14 +2529,18 @@
   [^clojure.lang.Volatile vol newval]
   (.reset vol newval))
 
-(defmacro vswap!
+(defn vswap!
   "Non-atomically swaps the value of the volatile as if:
    (apply f current-value-of-vol args). Returns the value that
    was swapped in."
-  {:added "1.7"}
-  [vol f & args]
-  (let [v (with-meta vol {:tag 'clojure.lang.Volatile})]
-    `(.reset ~v (~f (.deref ~v) ~@args))))
+  {:added "1.7"
+   :inline (fn [vol f & args]
+             (let [v (with-meta vol {:tag 'clojure.lang.Volatile})]
+               `(.reset ~v (~f (.deref ~v) ~@args))))}
+  ([^clojure.lang.Volatile vol f] (.reset vol (f @vol)))
+  ([^clojure.lang.Volatile vol f x] (.reset vol (f @vol x)))
+  ([^clojure.lang.Volatile vol f x y] (.reset vol (f @vol x y)))
+  ([^clojure.lang.Volatile vol f x y args] (.reset vol (apply f @vol x y args))))
 
 (defn volatile?
   "Returns true if x is a volatile."
