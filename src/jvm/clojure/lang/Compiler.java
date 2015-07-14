@@ -3559,6 +3559,12 @@ static class StaticInvokeExpr implements Expr, MaybePrimitiveExpr{
 
 }
 
+    static void debugStr(GeneratorAdapter gen, String s) {
+        gen.invokeStatic(RT_TYPE, Method.getMethod("java.io.PrintWriter errPrintWriter()"));
+        gen.push(s + "\n");
+        gen.invokeVirtual(Type.getType(PrintWriter.class), Method.getMethod("void print(String)"));
+    }
+
 static class InvokeExpr implements Expr{
 	public final Expr fexpr;
 	public final Object tag;
