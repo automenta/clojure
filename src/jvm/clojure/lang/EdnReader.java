@@ -797,15 +797,16 @@ public static class TaggedReader extends AFn{
 
 	static Keyword READERS = Keyword.intern(null,"readers");
 	static Keyword DEFAULT = Keyword.intern(null,"default");
+    static Object sentinel = new AFn() {};
 
 	private Object readTagged(PushbackReader reader, Symbol tag, IPersistentMap opts){
 		Object o = read(reader, true, null, true, opts);
 
 		ILookup readers = (ILookup)RT.get(opts, READERS);
-		IFn dataReader = (IFn)RT.get(readers, tag);
-		if(dataReader == null)
-			dataReader = (IFn)RT.get(RT.DEFAULT_DATA_READERS.deref(),tag);
-		if(dataReader == null){
+        IFn dataReader = (IFn)RT.get(readers, tag, sentinel);
+        if(dataReader == sentinel)
+            dataReader = (IFn)RT.get(RT.DEFAULT_DATA_READERS.deref(),tag, sentinel);
+        if(dataReader == sentinel){
 			IFn defaultReader = (IFn)RT.get(opts, DEFAULT);
 			if(defaultReader != null)
 				return defaultReader.invoke(tag, o);

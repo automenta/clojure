@@ -780,3 +780,7 @@
   (eval (-> "^{:line 42 :column 99} (defn explicit-line-numbering [])" str->lnpr read))
   (is (= {:line 42 :column 99}
          (-> 'explicit-line-numbering resolve meta (select-keys [:line :column])))))
+
+(deftest clj-1138-nil-data-reader
+  (is (= nil (binding [*data-readers* {'foo (constantly nil)}]
+             (read-string "#foo nil")))))
