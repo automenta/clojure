@@ -619,7 +619,6 @@ public static class AssignExpr implements Expr{
 public static class VarExpr implements Expr, AssignableExpr{
 	public final Var var;
 	public final Object tag;
-	final static Method getMethod = Method.getMethod("Object get()");
 	final static Method setMethod = Method.getMethod("Object set(Object)");
 
     Class jc;
@@ -797,7 +796,6 @@ static public abstract class HostExpr implements Expr, MaybePrimitiveExpr{
 	final static Type BOOLEAN_TYPE = Type.getType(Boolean.class);
 	final static Type CHAR_TYPE = Type.getType(Character.class);
 	final static Type INTEGER_TYPE = Type.getType(Integer.class);
-	final static Type LONG_TYPE = Type.getType(Long.class);
 	final static Type FLOAT_TYPE = Type.getType(Float.class);
 	final static Type DOUBLE_TYPE = Type.getType(Double.class);
 	final static Type SHORT_TYPE = Type.getType(Short.class);
@@ -809,23 +807,10 @@ static public abstract class HostExpr implements Expr, MaybePrimitiveExpr{
 
 	final static Method charValueOfMethod = Method.getMethod("Character valueOf(char)");
 	final static Method intValueOfMethod = Method.getMethod("Integer valueOf(int)");
-	final static Method longValueOfMethod = Method.getMethod("Long valueOf(long)");
 	final static Method floatValueOfMethod = Method.getMethod("Float valueOf(float)");
 	final static Method doubleValueOfMethod = Method.getMethod("Double valueOf(double)");
 	final static Method shortValueOfMethod = Method.getMethod("Short valueOf(short)");
 	final static Method byteValueOfMethod = Method.getMethod("Byte valueOf(byte)");
-
-	final static Method intValueMethod = Method.getMethod("int intValue()");
-	final static Method longValueMethod = Method.getMethod("long longValue()");
-	final static Method floatValueMethod = Method.getMethod("float floatValue()");
-	final static Method doubleValueMethod = Method.getMethod("double doubleValue()");
-	final static Method byteValueMethod = Method.getMethod("byte byteValue()");
-	final static Method shortValueMethod = Method.getMethod("short shortValue()");
-
-	final static Method fromIntMethod = Method.getMethod("clojure.lang.Num from(int)");
-	final static Method fromLongMethod = Method.getMethod("clojure.lang.Num from(long)");
-	final static Method fromDoubleMethod = Method.getMethod("clojure.lang.Num from(double)");
-
 
 	//*
 	public static void emitBoxReturn(ObjExpr objx, GeneratorAdapter gen, Class returnType){
@@ -840,7 +825,6 @@ static public abstract class HostExpr implements Expr, MaybePrimitiveExpr{
 				gen.goTo(endLabel);
 				gen.mark(falseLabel);
 				gen.getStatic(BOOLEAN_OBJECT_TYPE, "FALSE", BOOLEAN_OBJECT_TYPE);
-//				NIL_EXPR.emit(C.EXPRESSION, fn, gen);
 				gen.mark(endLabel);
 				}
 			else if(returnType == void.class)
@@ -856,15 +840,11 @@ static public abstract class HostExpr implements Expr, MaybePrimitiveExpr{
 					if(returnType == int.class)
 						{
 						gen.invokeStatic(INTEGER_TYPE, intValueOfMethod);
-//						gen.visitInsn(I2L);
-//						gen.invokeStatic(NUMBERS_TYPE, Method.getMethod("Number num(long)"));
 						}
 					else if(returnType == float.class)
 						{
 						gen.invokeStatic(FLOAT_TYPE, floatValueOfMethod);
 
-//						gen.visitInsn(F2D);
-//						gen.invokeStatic(DOUBLE_TYPE, doubleValueOfMethod);
 						}
 					else if(returnType == double.class)
 							gen.invokeStatic(DOUBLE_TYPE, doubleValueOfMethod);
@@ -886,14 +866,6 @@ static public abstract class HostExpr implements Expr, MaybePrimitiveExpr{
 				{
 				gen.checkCast(BOOLEAN_TYPE);
 				gen.invokeVirtual(BOOLEAN_TYPE, booleanValueMethod);
-//				Label falseLabel = gen.newLabel();
-//				Label endLabel = gen.newLabel();
-//				gen.ifNull(falseLabel);
-//				gen.push(1);
-//				gen.goTo(endLabel);
-//				gen.mark(falseLabel);
-//				gen.push(0);
-//				gen.mark(endLabel);
 				}
 			else if(paramType == char.class)
 				{
@@ -2139,7 +2111,6 @@ public static class TryExpr implements Expr{
 	public final int finallyLocal;
 
 	public static class CatchClause{
-		//final String className;
 		public final Class c;
 		public final LocalBinding lb;
 		public final Expr handler;
@@ -2355,63 +2326,6 @@ public static class TryExpr implements Expr{
 		}
 	}
 }
-
-//static class TryFinallyExpr implements Expr{
-//	final Expr tryExpr;
-//	final Expr finallyExpr;
-//
-//
-//	public TryFinallyExpr(Expr tryExpr, Expr finallyExpr){
-//		this.tryExpr = tryExpr;
-//		this.finallyExpr = finallyExpr;
-//	}
-//
-//	public Object eval() {
-//		throw new UnsupportedOperationException("Can't eval try");
-//	}
-//
-//	public void emit(C context, FnExpr fn, GeneratorAdapter gen){
-//		Label startTry = gen.newLabel();
-//		Label endTry = gen.newLabel();
-//		Label end = gen.newLabel();
-//		Label finallyLabel = gen.newLabel();
-//		gen.visitTryCatchBlock(startTry, endTry, finallyLabel, null);
-//		gen.mark(startTry);
-//		tryExpr.emit(context, fn, gen);
-//		gen.mark(endTry);
-//		finallyExpr.emit(C.STATEMENT, fn, gen);
-//		gen.goTo(end);
-//		gen.mark(finallyLabel);
-//		//exception should be on stack
-//		finallyExpr.emit(C.STATEMENT, fn, gen);
-//		gen.throwException();
-//		gen.mark(end);
-//	}
-//
-//	public boolean hasJavaClass() {
-//		return tryExpr.hasJavaClass();
-//	}
-//
-//	public Class getJavaClass() {
-//		return tryExpr.getJavaClass();
-//	}
-//
-//	static class Parser implements IParser{
-//		public Expr parse(C context, Object frm) {
-//			ISeq form = (ISeq) frm;
-//			//(try-finally try-expr finally-expr)
-//			if(form.count() != 3)
-//				throw new IllegalArgumentException(
-//						"Wrong number of arguments, expecting: (try-finally try-expr finally-expr) ");
-//
-//			if(context == C.EVAL || context == C.EXPRESSION)
-//				return analyze(context, RT.list(RT.list(FN, PersistentVector.EMPTY, form)));
-//
-//			return new TryFinallyExpr(analyze(context, RT.second(form)),
-//			                          analyze(C.STATEMENT, RT.third(form)));
-//		}
-//	}
-//}
 
 static class ThrowExpr extends UntypedExpr{
 	public final Expr excExpr;
