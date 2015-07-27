@@ -206,32 +206,19 @@ static public Number remainder(Object x, Object y){
 static public double quotient(double n, double d){
 	if(d == 0)
 		throw new ArithmeticException("Divide by zero");
-
 	double q = n / d;
-	if(q <= Long.MAX_VALUE && q >= Long.MIN_VALUE)
-		{
-		return (double)(long) q;
-		}
-	else
-		{ //bigint quotient
-		return new BigDecimal(q).toBigInteger().doubleValue();
-		}
+    return (q >= 0) ? Math.floor(q) : Math.ceil(q);
 }
 
 static public double remainder(double n, double d){
+    // Should act like Math.IEEEremainder but with truncating-rounding.
 	if(d == 0)
 		throw new ArithmeticException("Divide by zero");
-
+    if(Double.isInfinite(d) && !(Double.isNaN(n) || Double.isInfinite(n)))
+        return n;
 	double q = n / d;
-	if(q <= Long.MAX_VALUE && q >= Long.MIN_VALUE)
-		{
-		return (n - ((long) q) * d);
-		}
-	else
-		{ //bigint quotient
-		Number bq = new BigDecimal(q).toBigInteger();
-		return (n - bq.doubleValue() * d);
-		}
+    double qr = (q >= 0) ? Math.floor(q) : Math.ceil(q);
+    return n - d * qr;
 }
 
 static public boolean equiv(Object x, Object y){

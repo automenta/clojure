@@ -383,7 +383,13 @@
   ; divide by zero
   (is (thrown? ArithmeticException (rem 9 0)))
   (is (thrown? ArithmeticException (rem 0 0)))
-  
+  (is (thrown? ArithmeticException (rem 1.0 0)))
+
+  ;; NaN for doubles
+  (is (Double/isNaN (rem Double/NaN 2)))
+  (is (Double/isNaN (rem 2 Double/NaN)))
+  (is (Double/isNaN (rem Double/POSITIVE_INFINITY 2.0)))
+
   (are [x y] (= x y)
     (rem 4 2) 0
     (rem 3 2) 1
@@ -396,6 +402,13 @@
 
     (rem 4.0 2.0) 0.0
     (rem 4.5 2.0) 0.5
+    (rem -4.5 2.0) -0.5
+    (rem 40.0 0.1) 0.0  ; vs Java (40.0 % 0.1) == 0.099...
+
+    (rem 0.0 Double/POSITIVE_INFINITY) 0.0
+    (rem 0 Double/NEGATIVE_INFINITY) 0.0
+    (rem 1.0 Double/NEGATIVE_INFINITY) 1.0
+    (rem 1 Double/NEGATIVE_INFINITY) 1.0
 
     ; |num| > |div|, num != k * div
     (rem 42 5) 2      ; (8 * 5) + 2 == 42
@@ -430,7 +443,13 @@
   ; divide by zero
   (is (thrown? ArithmeticException (quot 9 0)))
   (is (thrown? ArithmeticException (quot 0 0)))
-  
+  (is (thrown? ArithmeticException (quot 1.0 0.0)))
+
+  ;; NaN for doubles
+  (is (Double/isNaN (quot Double/NaN 2)))
+  (is (Double/isNaN (quot 2 Double/NaN)))
+  (is (Double/isNaN (quot Double/POSITIVE_INFINITY Double/POSITIVE_INFINITY)))
+
   (are [x y] (= x y)
     (quot 4 2) 2
     (quot 3 2) 1
@@ -443,6 +462,10 @@
 
     (quot 4.0 2.0) 2.0
     (quot 4.5 2.0) 2.0
+    (quot -4.5 2.0) -2.0
+    (quot 1 Double/NEGATIVE_INFINITY) 0.0
+    (quot -4.5 Double/POSITIVE_INFINITY) 0.0
+    (quot Double/POSITIVE_INFINITY 2.0) Double/POSITIVE_INFINITY
 
     ; |num| > |div|, num != k * div
     (quot 42 5) 8     ; (8 * 5) + 2 == 42
