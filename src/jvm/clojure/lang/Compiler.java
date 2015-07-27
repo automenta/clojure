@@ -3616,6 +3616,7 @@ static class InvokeExpr implements Expr{
 	public boolean isDirect = false;
 	public int siteIndex = -1;
 	public Class protocolOn;
+    public int classLocal = -1;
 	public java.lang.reflect.Method onMethod;
 	static Keyword onKey = Keyword.intern("on");
 	static Keyword methodMapKey = Keyword.intern("method-map");
@@ -3650,6 +3651,7 @@ static class InvokeExpr implements Expr{
 				{
 				this.isProtocol = true;
 				this.siteIndex = registerProtocolCallsite(((VarExpr)fexpr).var);
+                this.classLocal = getAndIncLocalNum();
 				Object pon = RT.get(pvar.get(), onKey);
 				this.protocolOn = HostExpr.maybeClass(pon,false);
 				if(this.protocolOn != null)
@@ -3732,6 +3734,8 @@ static class InvokeExpr implements Expr{
 		e.emit(C.EXPRESSION, objx, gen);
 		gen.dup(); //target, target
 		gen.invokeStatic(UTIL_TYPE,Method.getMethod("Class classOf(Object)")); //target,class
+        gen.dup(); //target,class,class
+        gen.visitVarInsn(OBJECT_TYPE.getOpcode(Opcodes.ISTORE), classLocal); //target,class
 		gen.getStatic(objx.objtype, objx.cachedClassName(siteIndex),CLASS_TYPE); //target,class,cached-class
 		gen.visitJumpInsn(IF_ACMPEQ, callLabel); //target
 		if(protocolOn != null)
@@ -3741,8 +3745,7 @@ static class InvokeExpr implements Expr{
 			gen.ifZCmp(GeneratorAdapter.NE, onLabel);
 			}
 
-		gen.dup(); //target, target
-		gen.invokeStatic(UTIL_TYPE,Method.getMethod("Class classOf(Object)")); //target,class
+        gen.visitVarInsn(OBJECT_TYPE.getOpcode(Opcodes.ILOAD), classLocal); //target,class
 		gen.putStatic(objx.objtype, objx.cachedClassName(siteIndex),CLASS_TYPE); //target
 
 		gen.mark(callLabel); //target
