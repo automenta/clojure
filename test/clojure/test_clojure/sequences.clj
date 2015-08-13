@@ -381,6 +381,15 @@
       (lazy-seq "abc") '(\a \b \c)
       (lazy-seq (into-array [1 2])) '(1 2) ))
 
+(deftest test-lazy-with-meta-sharing
+  (let [realize-count (atom 0)
+        s (lazy-seq (swap! realize-count inc) [1 2])
+        s2 (with-meta s {:with-meta true})]
+    (is (= 0 @realize-count))
+    (is (= {:with-meta true} (meta s2)))
+    (is (= [1 2] s))
+    (is (= [1 2] s2))
+    (is (= 1 @realize-count))))
 
 (deftest test-seq
   (is (not (seq? (seq []))))

@@ -24,16 +24,19 @@ public LazySeq(IFn fn){
 	this.fn = fn;
 }
 
-private LazySeq(IPersistentMap meta, ISeq s){
+private LazySeq(IPersistentMap meta, IFn f){
 	super(meta);
-	this.fn = null;
-	this.s = s;
+    this.fn = f;
 }
 
 public Obj withMeta(IPersistentMap meta){
 	if(meta() == meta)
 		return this;
-	return new LazySeq(meta, seq());
+  return new LazySeq(meta, new AFn() {
+      public Object invoke() {
+          return seq();
+      }
+  });
 }
 
 final synchronized Object sval(){
