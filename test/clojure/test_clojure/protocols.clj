@@ -13,7 +13,8 @@
   (:require [clojure.test-clojure.protocols.more-examples :as other]
             [clojure.set :as set]
             clojure.test-helper)
-  (:import [clojure.test_clojure.protocols.examples ExampleInterface]))
+  (:import [clojure.test_clojure.protocols.examples ExampleInterface]
+           [clojure.lang Counted IObj]))
 
 ;; temporary hack until I decide how to cleanly reload protocol
 ;; this no longer works
@@ -702,3 +703,27 @@
     "foo" "Object impl"
     (ImplementedType.) "Custom impl"
     (UnImplementedType.) "Object impl"))
+
+(defprotocol Proto1
+  (proto1 [_]))
+(defprotocol Proto2
+  (proto2 [_]))
+
+(extend-protocol Proto1
+  Counted
+  (proto1 [_] 1)
+  IObj
+  (proto1 [_] 2))
+
+(extend-protocol Proto2
+  Counted
+  (proto2 [_] 1)
+  IObj
+  (proto2 [_] 2))
+
+(prefer-proto Proto1 Counted IObj)
+(prefer-proto Proto2 IObj Counted)
+
+(deftest CLJ-1807-prefer-proto
+  (is (= 1 (proto1 [])))
+  (is (= 2 (proto2 []))))

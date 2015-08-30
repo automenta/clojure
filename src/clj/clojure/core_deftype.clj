@@ -526,11 +526,29 @@
   (when c
     (cons c (super-chain (.getSuperclass c)))))
 
-(defn- pref
-  ([] nil)
-  ([a] a) 
-  ([^Class a ^Class b]
-     (if (.isAssignableFrom a b) b a)))
+;; like MultiFn/prefers
+(defn- proto-prefers? [prefer-table ^Class a ^Class b]
+  (or (contains? (get prefer-table a) b)
+      (loop [supers (seq (.getInterfaces b))]
+        (when supers
+          (or (proto-prefers? prefer-table a (first supers))
+              (recur (next supers)))))
+      (loop [supers (seq (.getInterfaces a))]
+        (when supers
+          (or (proto-prefers? prefer-table (first supers) b)
+              (recur (next supers)))))))
+
+(defn- pref [prefer-table]
+  (fn
+    ([] nil)
+    ([a] a)
+    ([^Class a ^Class b]
+     (if (or (.isAssignableFrom a b)
+             (and prefer-table
+                  (not (.isAssignableFrom b a))
+                  (proto-prefers? prefer-table b a)))
+       b
+       a))))
 
 (defn- find-protocol-impl* [protocol x c]
   (let [interface (:on-interface protocol)]
@@ -539,7 +557,8 @@
       (let [impls (:impls protocol)
             impl #(and (contains? impls %) %)]
         (or (first (remove nil? (map impl (butlast (super-chain c)))))
-            (when-let [t (reduce1 pref (filter impl (disj (supers c) Object)))]
+            (when-let [t (reduce1 (pref (:prefer-table protocol))
+                                  (filter impl (disj (supers c) Object)))]
               (impl t))
             (impl Object))))))
 
@@ -920,3 +939,12 @@
   [p & specs]
   (emit-extend-protocol p specs))
 
+(defn prefer-proto
+  "Causes the protocol method to prefer matches of interface-x over interface-y
+   when there is a conflict"
+  {:added "1.8"}
+  [proto ^Class interface-x ^Class interface-y]
+  (when (proto-prefers? (:prefer-table proto) interface-y interface-x)
+    (throw (IllegalArgumentException. (format "Preference conflict in protocol '%s': %s is already preferred to %s"
+                                              (:var proto) interface-y interface-x))))
+  (-reset-methods (alter-var-root (:var proto) update-in [:prefer-table interface-x] (fnil conj #{}) interface-y)))
