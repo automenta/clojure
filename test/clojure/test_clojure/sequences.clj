@@ -1516,6 +1516,14 @@
        [count even? odd?] [count even? odd?]))
 
 (deftest test-group-by
+  (is (= (transduce (map identity) (group-by even?) [])
+   {}))
+  (is (= (transduce (map identity) (group-by even?) (range 1))
+   {true [0]}))
+  (is (= (transduce (map identity) (group-by even?) (range 6))
+   {false [1 3 5], true [0 2 4]}))
+  (is (= (transduce (map identity) (group-by even?) {:a 23} (range 6))
+   {false [1 3 5], true [0 2 4], :a 23}))
   (is (= (group-by even? [1 2 3 4 5]) 
 	 {false [1 3 5], true [2 4]})))
 

@@ -7164,16 +7164,23 @@ fails, attempts to require sym's namespace and retries."
 (defn group-by 
   "Returns a map of the elements of coll keyed by the result of
   f on each element. The value at each key will be a vector of the
-  corresponding elements, in the order they appeared in coll."
+  corresponding elements, in the order they appeared in coll. Returns
+  a reducer if no collection is provided."
   {:added "1.2"
    :static true}
-  [f coll]  
-  (persistent!
-   (reduce
-    (fn [ret x]
-      (let [k (f x)]
-        (assoc! ret k (conj (get ret k []) x))))
-    (transient {}) coll)))
+  ([f]
+   (fn
+    ([] {})
+    ([ret] ret)
+    ([ret input]
+     (let [k (f input)] (assoc ret k (conj (get ret k []) input))))))
+  ([f coll]
+   (persistent!
+    (reduce
+     (fn [ret x]
+       (let [k (f x)]
+         (assoc! ret k (conj (get ret k []) x))))
+     (transient {}) coll))))
 
 (defn partition-by
   "Applies f to each value in coll, splitting it each time f returns a
