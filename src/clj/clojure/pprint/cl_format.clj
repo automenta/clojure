@@ -642,7 +642,7 @@ string, or one character longer."
     (let [loc (inc e)]
       (str (subs m 0 loc) "." (subs m loc)))))
 
-(defn- get-fixed [m e d]
+(defn- ^String get-fixed [m e d]
   (insert-decimal (expand-fixed m e d) e))
 
 (defn- insert-scaled-decimal
@@ -681,7 +681,7 @@ string, or one character longer."
         append-zero (and (not d) (<= (dec (count mantissa)) scaled-exp))
         [rounded-mantissa scaled-exp expanded] (round-str mantissa scaled-exp 
                                                           d (if w (- w (if add-sign 1 0))))
-        ^String fixed-repr (get-fixed rounded-mantissa (if expanded (inc scaled-exp) scaled-exp) d)
+        fixed-repr (get-fixed rounded-mantissa (if expanded (inc scaled-exp) scaled-exp) d)
         fixed-repr (if (and w d
                             (>= d 1)
                             (= (.charAt fixed-repr 0) \0)
@@ -822,7 +822,7 @@ string, or one character longer."
         w (:w params) ; minimum field width
         add-sign (or (:at params) (neg? arg))
         [rounded-mantissa scaled-exp expanded] (round-str mantissa exp d nil)
-        ^String fixed-repr (get-fixed rounded-mantissa (if expanded (inc scaled-exp) scaled-exp) d)
+        fixed-repr (get-fixed rounded-mantissa (if expanded (inc scaled-exp) scaled-exp) d)
         full-repr (str (apply str (repeat (- n (.indexOf fixed-repr (int \.))) \0)) fixed-repr)
         full-len (+ (count full-repr) (if add-sign 1 0))]
     (print (str

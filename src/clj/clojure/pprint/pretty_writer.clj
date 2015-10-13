@@ -105,7 +105,7 @@
 ;;; Functions to write tokens in the output buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:private pp-newline (memoize #(System/getProperty "line.separator")))
+(def ^:private ^String pp-newline (memoize #(System/getProperty "line.separator")))
 
 (declare emit-nl)
 
@@ -234,7 +234,7 @@
            (recur (:parent lb)))))))
 
 (defn- emit-nl [^Writer this nl]
-  (write-to-base ^String (pp-newline))
+  (write-to-base (pp-newline))
   (dosync (setf :trailing-white-space nil))
   (let [lb (:logical-block nl)
         ^String prefix (:per-line-prefix lb)] 
@@ -350,7 +350,7 @@
          (write-to-base (int \newline))
          (doseq [^String l (next (butlast lines))]
            (write-to-base l)
-           (write-to-base ^String (pp-newline))
+           (write-to-base (pp-newline))
            (if prefix
              (write-to-base prefix)))
          (setf :buffering :writing)
