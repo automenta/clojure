@@ -433,33 +433,17 @@ static class DefExpr implements Expr{
 		this.initProvided = initProvided;
 	}
 
-    private boolean includesExplicitMetadata(MapExpr expr) {
-        for(int i=0; i < expr.keyvals.count(); i += 2)
-            {
-                Keyword k  = ((KeywordExpr) expr.keyvals.nth(i)).k;
-                if ((k != RT.FILE_KEY) &&
-                    (k != RT.DECLARED_KEY) &&
-                    (k != RT.LINE_KEY) &&
-                    (k != RT.COLUMN_KEY))
-                    return true;
-            }
-        return false;
-    }
-
     public Object eval() {
 		try
 			{
 			if(initProvided)
 				{
-//			if(init instanceof FnExpr && ((FnExpr) init).closes.count()==0)
-//				var.bindRoot(new FnLoaderThunk((FnExpr) init,var));
-//			else
 				var.bindRoot(init.eval());
 				}
 			if(meta != null)
 				{
                 IPersistentMap metaMap = (IPersistentMap) meta.eval();
-                if (initProvided || true)//includesExplicitMetadata((MapExpr) meta))
+                if (initProvided || true)
 				    var.setMeta(metaMap);
 				}
 			return var.setDynamic(isDynamic);
@@ -491,7 +475,7 @@ static class DefExpr implements Expr{
 			}
 		if(meta != null)
 			{
-            if (initProvided || true)//includesExplicitMetadata((MapExpr) meta))
+            if (initProvided || true)
                 {
                 gen.dup();
                 meta.emit(C.EXPRESSION, objx, gen);
