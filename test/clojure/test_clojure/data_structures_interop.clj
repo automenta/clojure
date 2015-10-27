@@ -18,8 +18,8 @@
 
 (defn gen-subvec [generator]
   (gen/bind (gen/not-empty generator)
-            (fn [v] (gen/bind (gen-range 0 (dec (count v)))
-                              (fn [[n m]] (gen/return (subvec v n m)))))))
+            (fn [v] (gen/fmap (fn [[n m]] (subvec v n m))
+                              (gen-range 0 (dec (count v)))))))
 
 (defn gen-gvec
   ([]
