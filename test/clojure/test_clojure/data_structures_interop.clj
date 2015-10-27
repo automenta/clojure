@@ -33,7 +33,7 @@
                             :boolean gen/boolean})
              #(apply gen-gvec %)))
   ([type generator]
-   (gen/bind (gen/list generator) #(gen/return (apply vector-of type %)))))
+   (gen/fmap #(apply vector-of type %) (gen/list generator))))
 
 (defn gen-hash-set [generator]
   (gen/fmap (partial apply hash-set) (gen/list generator)))
