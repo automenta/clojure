@@ -63,11 +63,11 @@
    (gen/fmap array-fn (gen/list generator))))
 
 (defn exaust-iterator-forward [^java.util.Iterator iter]
-  (loop [_ iter] (when (.hasNext iter) (recur (.next iter))))
+  (loop [] (when (.hasNext iter) (.next iter) (recur)))
   (try (.next iter) nil (catch Throwable t t)))
 
 (defn exaust-iterator-backward [^java.util.ListIterator iter]
-  (loop [_ iter] (when (.hasPrevious iter) (recur (.previous iter))))
+  (loop [] (when (.hasPrevious iter) (.previous iter) (recur)))
   (try (.previous iter) nil (catch Throwable t t)))
 
 (defspec iterator-throws-exception-on-exaustion 100
