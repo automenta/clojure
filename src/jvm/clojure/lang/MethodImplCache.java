@@ -18,9 +18,9 @@ public final class MethodImplCache{
 
 static public class Entry{
 	final public Class c;
-	final public IFn fn;
+    final public Object fn;
 
-	public Entry(Class c, IFn fn){
+    public Entry(Class c, Object fn){
 		this.c = c;
 		this.fn = fn;
 	}
@@ -61,13 +61,17 @@ public MethodImplCache(Symbol sym, IPersistentMap protocol, Keyword methodk, Map
 }
 
 public IFn fnFor(Class c){
+    return (IFn) implFor(c);
+}
+
+public Object implFor(Class c){
 	Entry last = mre;
 	if(last != null && last.c == c)
 		return last.fn;
-	return findFnFor(c);
+    return findImplFor(c);
 }
 
-IFn findFnFor(Class c){
+Object findImplFor(Class c){
     if (map != null)
         {
         Entry e = (Entry) map.get(c);

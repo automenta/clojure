@@ -532,16 +532,30 @@
   ([^Class a ^Class b]
      (if (.isAssignableFrom a b) b a)))
 
+(defn- find-protocol-impl* [protocol x c]
+  (let [interface (:on-interface protocol)]
+    (if (instance? interface x)
+      interface
+      (let [impls (:impls protocol)
+            impl #(and (contains? impls %) %)]
+        (or (first (remove nil? (map impl (butlast (super-chain c)))))
+            (when-let [t (reduce1 pref (filter impl (disj (supers c) Object)))]
+              (impl t))
+            (impl Object))))))
+
+(defn- find-and-cache-protocol-impl [protocol x]
+  (let [c (class x)
+        cache (:impl-cache protocol)]
+    (or (.implFor ^clojure.lang.MethodImplCache cache c)
+        (let [impl (find-protocol-impl* protocol x c)]
+          (alter-var-root (:var protocol) assoc :impl-cache (expand-method-impl-cache cache c impl))
+          impl))))
+
 (defn find-protocol-impl [protocol x]
-  (if (instance? (:on-interface protocol) x)
-    x
-    (let [c (class x)
-          impl #(get (:impls protocol) %)]
-      (or (impl c)
-          (and c (or (first (remove nil? (map impl (butlast (super-chain c)))))
-                     (when-let [t (reduce1 pref (filter impl (disj (supers c) Object)))]
-                       (impl t))
-                     (impl Object)))))))
+  (let [impl (if (nil? x)
+               x
+               (find-and-cache-protocol-impl protocol x))]
+    (get (:impls protocol) impl impl)))
 
 (defn find-protocol-method [protocol methodk x]
   (get (find-protocol-impl protocol x) methodk))
@@ -626,6 +640,7 @@
          f#))))
 
 (defn -reset-methods [protocol]
+  (alter-var-root (:var protocol) assoc :impl-cache (clojure.lang.MethodImplCache. (symbol (:var protocol)) protocol nil))
   (doseq [[^clojure.lang.Var v build] (:method-builders protocol)]
     (let [cache (clojure.lang.MethodImplCache. (symbol v) protocol (keyword (.sym v)))]
       (.bindRoot v (build cache)))))
