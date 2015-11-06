@@ -828,7 +828,23 @@
   ([x y & more]
    (not (apply = x y more))))
 
-
+(defn =to
+  "Returns a function that takes any number of arguments and compares them
+   for equality against x."
+  {:tag Boolean
+   :added "1.9"}
+  [x]
+  (let [pred (clojure.lang.Util/equivPred x)]
+    (fn eq
+      ([y] (.equiv pred x y))
+      ([y & more]
+       (if (eq y)
+         (let [f (first more)
+               n (next more)]
+           (if n
+             (recur f n)
+             (eq f)))
+         false)))))
 
 (defn compare
   "Comparator. Returns a negative number, zero, or a positive number
