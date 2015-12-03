@@ -363,7 +363,10 @@
                                                     (str/starts-with? cl-name "clojure.test$")
                                                     (str/starts-with? cl-name "clojure.core$ex_info")))
                                              (.getStackTrace (Thread/currentThread)))) m)
-    :error (merge (stacktrace-file-and-line (.getStackTrace ^Throwable (:actual m))) m)
+    :error (merge (stacktrace-file-and-line (drop-while
+                                              #(let [cl-name (.getClassName ^StackTraceElement %)]
+                                                 (str/starts-with? cl-name "clojure.lang.AFn"))
+                                              (.getStackTrace ^Throwable (:actual m)))) m)
     m)))
 
 (defmethod report :default [m]
