@@ -37,7 +37,7 @@ static final Keyword CONTINUE = Keyword.intern(null, "continue");
 static final Keyword FAIL = Keyword.intern(null, "fail");
 
 volatile Object state;
-    AtomicReference<ActionQueue> aq = new AtomicReference<ActionQueue>(ActionQueue.EMPTY);
+    final AtomicReference<ActionQueue> aq = new AtomicReference<>(ActionQueue.EMPTY);
 
     volatile Keyword errorMode = CONTINUE;
     volatile IFn errorHandler = null;
@@ -46,14 +46,14 @@ final private static AtomicLong sendThreadPoolCounter = new AtomicLong(0);
 
 final private static AtomicLong sendOffThreadPoolCounter = new AtomicLong(0);
 
-volatile public static ExecutorService pooledExecutor =
+final public static ExecutorService pooledExecutor =
 	Executors.newFixedThreadPool(2 + Runtime.getRuntime().availableProcessors(), 
 		createThreadFactory("clojure-agent-send-pool-%d", sendThreadPoolCounter));
 
-volatile public static ExecutorService soloExecutor = Executors.newCachedThreadPool(
+final public static ExecutorService soloExecutor = Executors.newCachedThreadPool(
 	createThreadFactory("clojure-agent-send-off-pool-%d", sendOffThreadPoolCounter));
 
-final static ThreadLocal<IPersistentVector> nested = new ThreadLocal<IPersistentVector>();
+final static ThreadLocal<IPersistentVector> nested = new ThreadLocal<>();
 
 private static ThreadFactory createThreadFactory(final String format, final AtomicLong threadPoolCounter) {
 	return new ThreadFactory() {

@@ -13,7 +13,6 @@
 package clojure.lang;
 
 import java.util.Collection;
-import java.util.RandomAccess;
 
 public class LazilyPersistentVector{
 

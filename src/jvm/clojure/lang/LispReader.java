@@ -10,27 +10,14 @@
 
 package clojure.lang;
 
+import com.gs.collections.impl.list.mutable.FastList;
+
 import java.io.IOException;
 import java.io.PushbackReader;
 import java.io.Reader;
-import java.lang.Character;
-import java.lang.Class;
-import java.lang.Exception;
-import java.lang.IllegalArgumentException;
-import java.lang.IllegalStateException;
-import java.lang.Integer;
-import java.lang.Number;
-import java.lang.NumberFormatException;
-import java.lang.Object;
-import java.lang.RuntimeException;
-import java.lang.String;
-import java.lang.StringBuilder;
-import java.lang.Throwable;
-import java.lang.UnsupportedOperationException;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,47 +29,47 @@ public class LispReader{
 static final Symbol QUOTE = Symbol.intern("quote");
 static final Symbol THE_VAR = Symbol.intern("var");
 //static Symbol SYNTAX_QUOTE = Symbol.intern(null, "syntax-quote");
-static Symbol UNQUOTE = Symbol.intern("clojure.core", "unquote");
-static Symbol UNQUOTE_SPLICING = Symbol.intern("clojure.core", "unquote-splicing");
-static Symbol CONCAT = Symbol.intern("clojure.core", "concat");
-static Symbol SEQ = Symbol.intern("clojure.core", "seq");
-static Symbol LIST = Symbol.intern("clojure.core", "list");
-static Symbol APPLY = Symbol.intern("clojure.core", "apply");
-static Symbol HASHMAP = Symbol.intern("clojure.core", "hash-map");
-static Symbol HASHSET = Symbol.intern("clojure.core", "hash-set");
-static Symbol VECTOR = Symbol.intern("clojure.core", "vector");
-static Symbol WITH_META = Symbol.intern("clojure.core", "with-meta");
+static final Symbol UNQUOTE = Symbol.intern("clojure.core", "unquote");
+static final Symbol UNQUOTE_SPLICING = Symbol.intern("clojure.core", "unquote-splicing");
+static final Symbol CONCAT = Symbol.intern("clojure.core", "concat");
+static final Symbol SEQ = Symbol.intern("clojure.core", "seq");
+static final Symbol LIST = Symbol.intern("clojure.core", "list");
+static final Symbol APPLY = Symbol.intern("clojure.core", "apply");
+static final Symbol HASHMAP = Symbol.intern("clojure.core", "hash-map");
+static final Symbol HASHSET = Symbol.intern("clojure.core", "hash-set");
+static final Symbol VECTOR = Symbol.intern("clojure.core", "vector");
+static final Symbol WITH_META = Symbol.intern("clojure.core", "with-meta");
 static Symbol META = Symbol.intern("clojure.core", "meta");
-static Symbol DEREF = Symbol.intern("clojure.core", "deref");
+static final Symbol DEREF = Symbol.intern("clojure.core", "deref");
 static Symbol READ_COND = Symbol.intern("clojure.core", "read-cond");
 static Symbol READ_COND_SPLICING = Symbol.intern("clojure.core", "read-cond-splicing");
-static Keyword UNKNOWN = Keyword.intern(null, "unknown");
+static final Keyword UNKNOWN = Keyword.intern(null, "unknown");
 //static Symbol DEREF_BANG = Symbol.intern("clojure.core", "deref!");
 
-static IFn[] macros = new IFn[256];
-static IFn[] dispatchMacros = new IFn[256];
+static final IFn[] macros = new IFn[256];
+static final IFn[] dispatchMacros = new IFn[256];
 //static Pattern symbolPat = Pattern.compile("[:]?([\\D&&[^:/]][^:/]*/)?[\\D&&[^:/]][^:/]*");
-static Pattern symbolPat = Pattern.compile("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)");
+static final Pattern symbolPat = Pattern.compile("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)");
 //static Pattern varPat = Pattern.compile("([\\D&&[^:\\.]][^:\\.]*):([\\D&&[^:\\.]][^:\\.]*)");
 //static Pattern intPat = Pattern.compile("[-+]?[0-9]+\\.?");
-static Pattern intPat =
+static final Pattern intPat =
 		Pattern.compile(
 				"([-+]?)(?:(0)|([1-9][0-9]*)|0[xX]([0-9A-Fa-f]+)|0([0-7]+)|([1-9][0-9]?)[rR]([0-9A-Za-z]+)|0[0-9]+)(N)?");
-static Pattern ratioPat = Pattern.compile("([-+]?[0-9]+)/([0-9]+)");
-static Pattern floatPat = Pattern.compile("([-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?)(M)?");
+static final Pattern ratioPat = Pattern.compile("([-+]?[0-9]+)/([0-9]+)");
+static final Pattern floatPat = Pattern.compile("([-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?)(M)?");
 //static Pattern accessorPat = Pattern.compile("\\.[a-zA-Z_]\\w*");
 //static Pattern instanceMemberPat = Pattern.compile("\\.([a-zA-Z_][\\w\\.]*)\\.([a-zA-Z_]\\w*)");
 //static Pattern staticMemberPat = Pattern.compile("([a-zA-Z_][\\w\\.]*)\\.([a-zA-Z_]\\w*)");
 //static Pattern classNamePat = Pattern.compile("([a-zA-Z_][\\w\\.]*)\\.");
 
 //symbol->gensymbol
-static Var GENSYM_ENV = Var.create(null).setDynamic();
+static final Var GENSYM_ENV = Var.create(null).setDynamic();
 //sorted-map num->gensymbol
-static Var ARG_ENV = Var.create(null).setDynamic();
-static IFn ctorReader = new CtorReader();
+static final Var ARG_ENV = Var.create(null).setDynamic();
+static final IFn ctorReader = new CtorReader();
 
 // Dynamic var set to true in a read-cond context
-static Var READ_COND_ENV = Var.create(null).setDynamic();
+static final Var READ_COND_ENV = Var.create(null).setDynamic();
 
 static
 	{
@@ -247,7 +234,7 @@ static private Object read(PushbackReader r, boolean eofIsError, Object eofValue
 				return eofValue;
 				}
 
-			if(returnOn != null && (returnOn.charValue() == ch)) {
+			if(returnOn != null && (returnOn == ch)) {
 				return returnOnValue;
 			}
 
@@ -369,18 +356,14 @@ static private int readUnicodeChar(PushbackReader r, int initch, int base, int l
 }
 
 static private Object interpretToken(String s) {
-	if(s.equals("nil"))
-		{
-		return null;
-		}
-	else if(s.equals("true"))
-		{
-		return RT.T;
-		}
-	else if(s.equals("false"))
-		{
-		return RT.F;
-		}
+	switch (s) {
+		case "nil":
+			return null;
+		case "true":
+			return RT.T;
+		case "false":
+			return RT.F;
+	}
 	Object ret = null;
 
 	ret = matchSymbol(s);
@@ -693,7 +676,7 @@ public static class DispatchReader extends AFn{
 }
 
 static Symbol garg(int n){
-	return Symbol.intern(null, (n == -1 ? "rest" : ("p" + n)) + "__" + RT.nextID() + "#");
+	return Symbol.intern(null, (n == -1 ? "rest" : ("p" + n)) + "__" + RT.nextID() + '#');
 }
 
 public static class FnReader extends AFn{
@@ -1193,7 +1176,7 @@ public static List readDelimitedList(char delim, PushbackReader r, boolean isRec
 			(r instanceof LineNumberingPushbackReader) ?
 			((LineNumberingPushbackReader) r).getLineNumber() : -1;
 
-	ArrayList a = new ArrayList();
+	List a = new FastList();
 
 	for(; ;) {
 
@@ -1267,7 +1250,7 @@ public static class CtorReader extends AFn{
 		} else if (form instanceof IPersistentVector) {
 			shortForm = true;
 		} else {
-			throw Util.runtimeException("Unreadable constructor form starting with \"#" + recordName + "\"");
+			throw Util.runtimeException("Unreadable constructor form starting with \"#" + recordName + '"');
 		}
 
 		Object ret = null;
@@ -1295,7 +1278,7 @@ public static class CtorReader extends AFn{
 				if(!(s.first() instanceof Keyword))
 					throw Util.runtimeException("Unreadable defrecord form: key must be of type clojure.lang.Keyword, got " + s.first().toString());
 				}
-			ret = Reflector.invokeStaticMethod(recordClass, "create", new Object[]{vals});
+			ret = Reflector.invokeStaticMethod(recordClass, "create", vals);
 			}
 
 		return ret;

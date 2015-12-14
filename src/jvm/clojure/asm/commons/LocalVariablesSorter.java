@@ -113,8 +113,8 @@ public class LocalVariablesSorter extends MethodVisitor {
         super(api, mv);
         Type[] args = Type.getArgumentTypes(desc);
         nextLocal = (Opcodes.ACC_STATIC & access) == 0 ? 1 : 0;
-        for (int i = 0; i < args.length; i++) {
-            nextLocal += args[i].getSize();
+        for (Type arg : args) {
+            nextLocal += arg.getSize();
         }
         firstLocal = nextLocal;
     }
@@ -173,7 +173,7 @@ public class LocalVariablesSorter extends MethodVisitor {
 
     @Override
     public void visitFrame(final int type, final int nLocal,
-            final Object[] local, final int nStack, final Object[] stack) {
+            final Object[] local, final int nStack, final Object... stack) {
         if (type != Opcodes.F_NEW) { // uncompressed frame
             throw new IllegalStateException(
                     "ClassReader.accept() should be called with EXPAND_FRAMES flag");
@@ -301,7 +301,7 @@ public class LocalVariablesSorter extends MethodVisitor {
      *            types use two slots. The types for the current stack map frame
      *            must be updated in place in this array.
      */
-    protected void updateNewLocals(Object[] newLocals) {
+    protected void updateNewLocals(Object... newLocals) {
     }
 
     /**

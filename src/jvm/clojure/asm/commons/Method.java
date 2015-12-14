@@ -29,10 +29,9 @@
  */
 package clojure.asm.commons;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import clojure.asm.Type;
+import com.gs.collections.api.map.ImmutableMap;
+import com.gs.collections.impl.map.mutable.UnifiedMap;
 
 /**
  * A named method descriptor.
@@ -53,23 +52,23 @@ public class Method {
      */
     private final String desc;
 
+    transient final int hash;
+
     /**
      * Maps primitive Java type names to their descriptors.
      */
-    private static final Map<String, String> DESCRIPTORS;
+    private static final ImmutableMap<String, String> DESCRIPTORS = new UnifiedMap() {{
+        put("void", "V");
+        put("byte", "B");
+        put("char", "C");
+        put("double", "D");
+        put("float", "F");
+        put("int", "I");
+        put("long", "J");
+        put("short", "S");
+        put("boolean", "Z");
+    }}.toImmutable();
 
-    static {
-        DESCRIPTORS = new HashMap<String, String>();
-        DESCRIPTORS.put("void", "V");
-        DESCRIPTORS.put("byte", "B");
-        DESCRIPTORS.put("char", "C");
-        DESCRIPTORS.put("double", "D");
-        DESCRIPTORS.put("float", "F");
-        DESCRIPTORS.put("int", "I");
-        DESCRIPTORS.put("long", "J");
-        DESCRIPTORS.put("short", "S");
-        DESCRIPTORS.put("boolean", "Z");
-    }
 
     /**
      * Creates a new {@link Method}.
@@ -82,6 +81,7 @@ public class Method {
     public Method(final String name, final String desc) {
         this.name = name;
         this.desc = desc;
+        this.hash = name.hashCode() ^ desc.hashCode();
     }
 
     /**
@@ -95,7 +95,7 @@ public class Method {
      *            the method's argument types.
      */
     public Method(final String name, final Type returnType,
-            final Type[] argumentTypes) {
+            final Type... argumentTypes) {
         this(name, Type.getMethodDescriptor(returnType, argumentTypes));
     }
 
@@ -196,7 +196,7 @@ public class Method {
     }
 
     private static String map(final String type, final boolean defaultPackage) {
-        if ("".equals(type)) {
+        if (type != null && type.isEmpty()) {
             return type;
         }
 
@@ -268,6 +268,7 @@ public class Method {
 
     @Override
     public boolean equals(final Object o) {
+        if (this == o) return true;
         if (!(o instanceof Method)) {
             return false;
         }
@@ -277,6 +278,6 @@ public class Method {
 
     @Override
     public int hashCode() {
-        return name.hashCode() ^ desc.hashCode();
+        return hash;
     }
 }

@@ -149,7 +149,7 @@ public class ClassReader {
      * @param b
      *            the bytecode of the class to be read.
      */
-    public ClassReader(final byte[] b) {
+    public ClassReader(final byte... b) {
         this(b, 0, b.length);
     }
 
@@ -374,7 +374,7 @@ public class ClassReader {
      *            the {@link ClassWriter} to copy bootstrap methods into.
      */
     private void copyBootstrapMethods(final ClassWriter classWriter,
-            final Item[] items, final char[] c) {
+            final Item[] items, final char... c) {
         // finds the "BootstrapMethods" attribute
         int u = getAttributes();
         boolean found = false;
@@ -1828,7 +1828,7 @@ public class ClassReader {
      * @return the offset of the first byte after the parsed type.
      */
     private int readFrameType(final Object[] frame, final int index, int v,
-            final char[] buf, final Label[] labels) {
+            final char[] buf, final Label... labels) {
         int type = b[v++] & 0xFF;
         switch (type) {
         case 0:
@@ -1876,7 +1876,7 @@ public class ClassReader {
      *            new one. Otherwise it must store the new label in this array.
      * @return a non null Label, which must be equal to labels[offset].
      */
-    protected Label readLabel(int offset, Label[] labels) {
+    protected Label readLabel(int offset, Label... labels) {
         if (labels[offset] == null) {
             labels[offset] = new Label();
         }
@@ -1944,10 +1944,10 @@ public class ClassReader {
      */
     private Attribute readAttribute(final Attribute[] attrs, final String type,
             final int off, final int len, final char[] buf, final int codeOff,
-            final Label[] labels) {
-        for (int i = 0; i < attrs.length; ++i) {
-            if (attrs[i].type.equals(type)) {
-                return attrs[i].read(this, off, len, buf, codeOff, labels);
+            final Label... labels) {
+        for (Attribute attr : attrs) {
+            if (attr.type.equals(type)) {
+                return attr.read(this, off, len, buf, codeOff, labels);
             }
         }
         return new Attribute(type).read(this, off, len, null, -1, null);
@@ -2075,7 +2075,7 @@ public class ClassReader {
      *            sufficiently large. It is not automatically resized.
      * @return the String corresponding to the specified UTF8 item.
      */
-    public String readUTF8(int index, final char[] buf) {
+    public String readUTF8(int index, final char... buf) {
         int item = readUnsignedShort(index);
         if (index == 0 || item == 0) {
             return null;
@@ -2100,7 +2100,7 @@ public class ClassReader {
      *            sufficiently large. It is not automatically resized.
      * @return the String corresponding to the specified UTF8 string.
      */
-    private String readUTF(int index, final int utfLen, final char[] buf) {
+    private String readUTF(int index, final int utfLen, final char... buf) {
         int endIndex = index + utfLen;
         byte[] b = this.b;
         int strLen = 0;
@@ -2150,7 +2150,7 @@ public class ClassReader {
      *            sufficiently large. It is not automatically resized.
      * @return the String corresponding to the specified class item.
      */
-    public String readClass(final int index, final char[] buf) {
+    public String readClass(final int index, final char... buf) {
         // computes the start index of the CONSTANT_Class item in b
         // and reads the CONSTANT_Utf8 item designated by
         // the first two bytes of this CONSTANT_Class item
@@ -2171,7 +2171,7 @@ public class ClassReader {
      *         {@link String}, {@link Type} or {@link Handle} corresponding to
      *         the given constant pool item.
      */
-    public Object readConst(final int item, final char[] buf) {
+    public Object readConst(final int item, final char... buf) {
         int index = items[item];
         switch (b[index - 1]) {
         case ClassWriter.INT:

@@ -110,7 +110,7 @@ protected PersistentStructMap(IPersistentMap meta, Def def, Object[] vals, IPers
  * allow subclasses to return instances of their class from all
  * PersistentStructMap methods.
  */
-protected PersistentStructMap makeNew(IPersistentMap meta, Def def, Object[] vals, IPersistentMap ext){
+protected static PersistentStructMap makeNew(IPersistentMap meta, Def def, Object[] vals, IPersistentMap ext){
 	return new PersistentStructMap(meta, def, vals, ext);
 }
 
@@ -186,7 +186,7 @@ public IPersistentMap without(Object key) {
 public Iterator iterator(){
     return new Iterator(){
         private ISeq ks = def.keys;
-        private Iterator extIter = ext == null ? null : ext.iterator();
+        private final Iterator extIter = ext == null ? null : ext.iterator();
 
         public boolean hasNext(){
             return ((ks != null && ks.seq() != null) || (extIter != null && extIter.hasNext()));

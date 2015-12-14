@@ -22,10 +22,9 @@ final IPersistentMap _meta;
 
 public static PersistentHashSet create(Object... init){
 	ITransientSet ret = (ITransientSet)EMPTY.asTransient();
-	for(int i = 0; i < init.length; i++)
-		{
-		ret = (ITransientSet)ret.conj(init[i]);
-		}
+	for (Object anInit : init) {
+		ret = (ITransientSet) ret.conj(anInit);
+	}
 	return (PersistentHashSet)ret.persistent();
 }
 

@@ -19,10 +19,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class Namespace extends AReference implements Serializable {
 final public Symbol name;
-transient final AtomicReference<IPersistentMap> mappings = new AtomicReference<IPersistentMap>();
-transient final AtomicReference<IPersistentMap> aliases = new AtomicReference<IPersistentMap>();
+transient final AtomicReference<IPersistentMap> mappings = new AtomicReference<>();
+transient final AtomicReference<IPersistentMap> aliases = new AtomicReference<>();
 
-final static ConcurrentHashMap<Symbol, Namespace> namespaces = new ConcurrentHashMap<Symbol, Namespace>();
+final static ConcurrentHashMap<Symbol, Namespace> namespaces = new ConcurrentHashMap<>();
 
 public String toString(){
 	return name.toString();

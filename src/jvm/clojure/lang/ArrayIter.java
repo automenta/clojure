@@ -17,7 +17,7 @@ public class ArrayIter implements Iterator {
 final Object[] array;
 int i;
 
-static public Iterator EMPTY_ITERATOR = new Iterator() {
+static public final Iterator EMPTY_ITERATOR = new Iterator() {
   public boolean hasNext() { return false; }
   public Object next() { throw new java.util.NoSuchElementException(); }
   public void remove() { throw new UnsupportedOperationException("remove() not supported"); }

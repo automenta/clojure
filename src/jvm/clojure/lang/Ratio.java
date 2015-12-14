@@ -37,7 +37,7 @@ public int hashCode(){
 }
 
 public String toString(){
-	return numerator.toString() + "/" + denominator.toString();
+	return numerator.toString() + '/' + denominator.toString();
 }
 
 public int intValue(){

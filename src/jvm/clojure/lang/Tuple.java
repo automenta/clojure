@@ -13,9 +13,6 @@
 
 package clojure.lang;
 
-import java.util.Collection;
-import java.util.RandomAccess;
-
 public class Tuple{
     static final int MAX_SIZE = 6;
 

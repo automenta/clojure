@@ -182,19 +182,27 @@ static public class KeySeq extends ASeq{
 			return ((IMapIterable)iterable).keyIterator();
 
 		final Iterator mapIter = iterable.iterator();
-		return new Iterator() {
-			public boolean hasNext() {
-				return mapIter.hasNext();
-			}
+		return new MyIterator4(mapIter);
+	}
 
-			public Object next() {
-				return ((Map.Entry)mapIter.next()).getKey();
-			}
+	private static class MyIterator4 implements Iterator {
+		private final Iterator mapIter;
 
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
+		public MyIterator4(Iterator mapIter) {
+			this.mapIter = mapIter;
+		}
+
+		public boolean hasNext() {
+            return mapIter.hasNext();
+        }
+
+		public Object next() {
+            return ((Entry) mapIter.next()).getKey();
+        }
+
+		public void remove() {
+            throw new UnsupportedOperationException();
+        }
 	}
 }
 
@@ -248,19 +256,27 @@ static public class ValSeq extends ASeq{
 			return ((IMapIterable)iterable).valIterator();
 
 		final Iterator mapIter = iterable.iterator();
-		return new Iterator() {
-			public boolean hasNext() {
-				return mapIter.hasNext();
-			}
+		return new MyIterator3(mapIter);
+	}
 
-			public Object next() {
-				return ((Map.Entry)mapIter.next()).getValue();
-			}
+	private static class MyIterator3 implements Iterator {
+		private final Iterator mapIter;
 
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		};
+		public MyIterator3(Iterator mapIter) {
+			this.mapIter = mapIter;
+		}
+
+		public boolean hasNext() {
+            return mapIter.hasNext();
+        }
+
+		public Object next() {
+            return ((Entry) mapIter.next()).getValue();
+        }
+
+		public void remove() {
+            throw new UnsupportedOperationException();
+        }
 	}
 }
 
@@ -342,22 +358,7 @@ public Set keySet(){
 		public Iterator iterator(){
 			final Iterator mi = APersistentMap.this.iterator();
 
-			return new Iterator(){
-
-
-				public boolean hasNext(){
-					return mi.hasNext();
-				}
-
-				public Object next(){
-					Entry e = (Entry) mi.next();
-					return e.getKey();
-				}
-
-				public void remove(){
-					throw new UnsupportedOperationException();
-				}
-			};
+			return new MyIterator2(mi);
 		}
 
 		public int size(){
@@ -392,22 +393,7 @@ public Collection values(){
 		public Iterator iterator(){
 			final Iterator mi = APersistentMap.this.iterator();
 
-			return new Iterator(){
-
-
-				public boolean hasNext(){
-					return mi.hasNext();
-				}
-
-				public Object next(){
-					Entry e = (Entry) mi.next();
-					return e.getValue();
-				}
-
-				public void remove(){
-					throw new UnsupportedOperationException();
-				}
-			};
+			return new MyIterator(mi);
 		}
 
 		public int size(){
@@ -415,6 +401,52 @@ public Collection values(){
 		}
 	};
 }
+
+	private static class MyIterator implements Iterator {
+
+
+		private final Iterator mi;
+
+		public MyIterator(Iterator mi) {
+			this.mi = mi;
+		}
+
+		public boolean hasNext(){
+            return mi.hasNext();
+        }
+
+		public Object next(){
+            Entry e = (Entry) mi.next();
+            return e.getValue();
+        }
+
+		public void remove(){
+            throw new UnsupportedOperationException();
+        }
+	}
+
+	private static class MyIterator2 implements Iterator {
+
+
+		private final Iterator mi;
+
+		public MyIterator2(Iterator mi) {
+			this.mi = mi;
+		}
+
+		public boolean hasNext(){
+            return mi.hasNext();
+        }
+
+		public Object next(){
+            Entry e = (Entry) mi.next();
+            return e.getKey();
+        }
+
+		public void remove(){
+            throw new UnsupportedOperationException();
+        }
+	}
 
 /*
 // java.util.Collection implementation

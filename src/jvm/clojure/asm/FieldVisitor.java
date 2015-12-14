@@ -82,18 +82,20 @@ public abstract class FieldVisitor {
     /**
      * Visits an annotation of the field.
      *
-     * @param desc
-     *            the class descriptor of the annotation class.
-     * @param visible
-     *            <tt>true</tt> if the annotation is visible at runtime.
+     * @param desc    the class descriptor of the annotation class.
+     * @param visible <tt>true</tt> if the annotation is visible at runtime.
      * @return a visitor to visit the annotation values, or <tt>null</tt> if
-     *         this visitor is not interested in visiting this annotation.
+     * this visitor is not interested in visiting this annotation.
      */
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        if (fv != null) {
-            return fv.visitAnnotation(desc, visible);
+        FieldVisitor other = this;
+        while (true) {
+            if (other.fv != null) {
+                other = other.fv;
+                continue;
+            }
+            return null;
         }
-        return null;
     }
 
     /**

@@ -47,10 +47,10 @@ static public class Unbound extends AFn{
 static class Frame{
 	final static Frame TOP = new Frame(PersistentHashMap.EMPTY, null);
 	//Var->TBox
-	Associative bindings;
+	final Associative bindings;
 	//Var->val
 //	Associative frameBindings;
-	Frame prev;
+	final Frame prev;
 
 	public Frame(Associative bindings, Frame prev){
 //		this.frameBindings = frameBindings;
@@ -73,11 +73,11 @@ static final ThreadLocal<Frame> dvals = new ThreadLocal<Frame>(){
 
 static public volatile int rev = 0;
 
-static Keyword privateKey = Keyword.intern(null, "private");
-static IPersistentMap privateMeta = new PersistentArrayMap(new Object[]{privateKey, Boolean.TRUE});
-static Keyword macroKey = Keyword.intern(null, "macro");
-static Keyword nameKey = Keyword.intern(null, "name");
-static Keyword nsKey = Keyword.intern(null, "ns");
+static final Keyword privateKey = Keyword.intern(null, "private");
+static final IPersistentMap privateMeta = new PersistentArrayMap(new Object[]{privateKey, Boolean.TRUE});
+static final Keyword macroKey = Keyword.intern(null, "macro");
+static final Keyword nameKey = Keyword.intern(null, "name");
+static final Keyword nsKey = Keyword.intern(null, "ns");
 //static Keyword tagKey = Keyword.intern(null, "tag");
 
 volatile Object root;
@@ -129,8 +129,8 @@ public static Var intern(Namespace ns, Symbol sym, Object root, boolean replaceR
 
 public String toString(){
 	if(ns != null)
-		return "#'" + ns.name + "/" + sym;
-	return "#<Var: " + (sym != null ? sym.toString() : "--unnamed--") + ">";
+		return "#'" + ns.name + '/' + sym;
+	return "#<Var: " + (sym != null ? sym.toString() : "--unnamed--") + '>';
 }
 
 public static Var find(Symbol nsQualifiedSym){
@@ -318,7 +318,7 @@ public static void pushThreadBindings(Associative bindings){
 		Var v = (Var) e.key();
 		if(!v.dynamic)
 			throw new IllegalStateException(String.format("Can't dynamically bind non-dynamic var: %s/%s", v.ns, v.sym));
-		v.validate(v.getValidator(), e.val());
+		ARef.validate(v.getValidator(), e.val());
 		v.threadBound.set(true);
 		bmap = bmap.assoc(v, new TBox(Thread.currentThread(), e.val()));
 		}
@@ -700,13 +700,13 @@ public Object applyTo(ISeq arglist) {
 	return AFn.applyToHelper(this, arglist);
 }
 
-static IFn assoc = new AFn(){
+static final IFn assoc = new AFn(){
     @Override
     public Object invoke(Object m, Object k, Object v)  {
         return RT.assoc(m, k, v);
     }
 };
-static IFn dissoc = new AFn() {
+static final IFn dissoc = new AFn() {
     @Override
     public Object invoke(Object c, Object k)  {
             return RT.dissoc(c, k);

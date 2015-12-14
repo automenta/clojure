@@ -10,8 +10,6 @@
 
 package clojure.lang;
 
-import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -45,7 +43,10 @@ static public IPersistentMap create(Map other){
 	return ret.persistent();
 }
 
+
+
 protected PersistentArrayMap(){
+
 	this.array = new Object[]{};
 	this._meta = null;
 }
@@ -58,11 +59,11 @@ PersistentArrayMap create(Object... init){
 	return new PersistentArrayMap(meta(), init);
 }
 
-IPersistentMap createHT(Object[] init){
+IPersistentMap createHT(Object... init){
 	return PersistentHashMap.create(meta(), init);
 }
 
-static public PersistentArrayMap createWithCheck(Object[] init){
+static public PersistentArrayMap createWithCheck(Object... init){
 	for(int i=0;i< init.length;i += 2)
 		{
 		for(int j=i+2;j<init.length;j += 2)
@@ -74,7 +75,7 @@ static public PersistentArrayMap createWithCheck(Object[] init){
 	return new PersistentArrayMap(init);
 }
 
-static public PersistentArrayMap createAsIfByAssoc(Object[] init){
+static public PersistentArrayMap createAsIfByAssoc(Object... init){
 	if ((init.length & 1) == 1)
                 throw new IllegalArgumentException(String.format("No value supplied for key: %s", init[init.length-1]));
 	// If this looks like it is doing busy-work, it is because it
@@ -142,13 +143,13 @@ static public PersistentArrayMap createAsIfByAssoc(Object[] init){
  *
  * @param init {key1,val1,key2,val2,...}
  */
-public PersistentArrayMap(Object[] init){
+public PersistentArrayMap(Object... init){
 	this.array = init;
 	this._meta = null;
 }
 
 
-public PersistentArrayMap(IPersistentMap meta, Object[] init){
+public PersistentArrayMap(IPersistentMap meta, Object... init){
 	this._meta = meta;
 	this.array = init;
 }
@@ -333,8 +334,8 @@ static class Seq extends ASeq implements Counted{
 }
 
 static class Iter implements Iterator{
-    IFn f;
-	Object[] array;
+    final IFn f;
+	final Object[] array;
 	int i;
 
 	//for iterator
@@ -386,7 +387,7 @@ static final class TransientArrayMap extends ATransientMap {
 	final Object[] array;
 	volatile Thread owner;
 
-	public TransientArrayMap(Object[] array){
+	public TransientArrayMap(Object... array){
 		this.owner = Thread.currentThread();
 		this.array = new Object[Math.max(HASHTABLE_THRESHOLD, array.length)];
 		System.arraycopy(array, 0, this.array, 0, array.length);

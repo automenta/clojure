@@ -11,7 +11,7 @@
 package clojure.lang;
 
 public class Binding<T>{
-public T val;
+public final T val;
 public final Binding rest;
 
 public Binding(T val){

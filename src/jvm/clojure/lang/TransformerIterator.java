@@ -197,7 +197,7 @@ private static class Many implements Buffer {
 private static class MultiIterator implements Iterator {
     private final Iterator[] iters;
 
-    public MultiIterator(Iterator[] iters) {
+    public MultiIterator(Iterator... iters) {
         this.iters = iters;
     }
 

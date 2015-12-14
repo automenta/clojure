@@ -226,11 +226,11 @@ public Iterator vals(){
 	return vals(iterator());
 }
 
-public Iterator keys(NodeIterator it){
+public static Iterator keys(NodeIterator it){
 	return new KeyIterator(it);
 }
 
-public Iterator vals(NodeIterator it){
+public static Iterator vals(NodeIterator it){
 	return new ValIterator(it);
 }
 
@@ -268,7 +268,7 @@ public int depth(){
 	return depth(tree);
 }
 
-int depth(Node t){
+static int depth(Node t){
 	if(t == null)
 		return 0;
 	return 1 + Math.max(depth(t.left()), depth(t.right()));
@@ -834,8 +834,8 @@ static public class Seq extends ASeq{
 }
 
 static public class NodeIterator implements Iterator{
-	Stack stack = new Stack();
-	boolean asc;
+	final Stack stack = new Stack();
+	final boolean asc;
 
 	NodeIterator(Node t, boolean asc){
 		this.asc = asc;
@@ -870,7 +870,7 @@ static public class NodeIterator implements Iterator{
 }
 
 static class KeyIterator implements Iterator{
-	NodeIterator it;
+	final NodeIterator it;
 
 	KeyIterator(NodeIterator it){
 		this.it = it;
@@ -890,7 +890,7 @@ static class KeyIterator implements Iterator{
 }
 
 static class ValIterator implements Iterator{
-	NodeIterator it;
+	final NodeIterator it;
 
 	ValIterator(NodeIterator it){
 		this.it = it;

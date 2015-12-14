@@ -507,7 +507,7 @@ static public class ArraySeq_byte extends ASeq implements IndexedSeq, IReduce{
 
 	public int indexOf(Object o) {
 		if (o instanceof Byte) {
-			byte b = ((Byte) o).byteValue();
+			byte b = (Byte) o;
 			for (int j = i; j < array.length; j++)
 				if (b == array[j]) return j - i;
 		}
@@ -521,7 +521,7 @@ static public class ArraySeq_byte extends ASeq implements IndexedSeq, IReduce{
 	
 	public int lastIndexOf(Object o) {
 		if (o instanceof Byte) {
-			byte b = ((Byte) o).byteValue();
+			byte b = (Byte) o;
 			for (int j = array.length - 1; j >= i; j--)
 				if (b == array[j]) return j - i;
 		}
@@ -592,7 +592,7 @@ static public class ArraySeq_char extends ASeq implements IndexedSeq, IReduce{
 	
 	public int indexOf(Object o) {
 		if (o instanceof Character) {
-			char c = ((Character) o).charValue();
+			char c = (Character) o;
 			for (int j = i; j < array.length; j++)
 				if (c == array[j]) return j - i;
 		}
@@ -606,7 +606,7 @@ static public class ArraySeq_char extends ASeq implements IndexedSeq, IReduce{
 	
 	public int lastIndexOf(Object o) {
 		if (o instanceof Character) {
-			char c = ((Character) o).charValue();
+			char c = (Character) o;
 			for (int j = array.length - 1; j >= i; j--)
 				if (c == array[j]) return j - i;
 		}
@@ -677,7 +677,7 @@ static public class ArraySeq_short extends ASeq implements IndexedSeq, IReduce{
 
 	public int indexOf(Object o) {
 		if (o instanceof Short) {
-			short s = ((Short) o).shortValue();
+			short s = (Short) o;
 			for (int j = i; j < array.length; j++)
 				if (s == array[j]) return j - i;
 		}
@@ -691,7 +691,7 @@ static public class ArraySeq_short extends ASeq implements IndexedSeq, IReduce{
 
 	public int lastIndexOf(Object o) {
 		if (o instanceof Short) {
-			short s = ((Short) o).shortValue();
+			short s = (Short) o;
 			for (int j = array.length - 1; j >= i; j--)
 				if (s == array[j]) return j - i;
 		}
@@ -762,7 +762,7 @@ static public class ArraySeq_boolean extends ASeq implements IndexedSeq, IReduce
 	
 	public int indexOf(Object o) {
 		if (o instanceof Boolean) {
-			boolean b = ((Boolean) o).booleanValue();
+			boolean b = (Boolean) o;
 			for (int j = i; j < array.length; j++)
 				if (b == array[j]) return j - i;
 		}
@@ -776,7 +776,7 @@ static public class ArraySeq_boolean extends ASeq implements IndexedSeq, IReduce
 	
 	public int lastIndexOf(Object o) {
 		if (o instanceof Boolean) {
-			boolean b = ((Boolean) o).booleanValue();
+			boolean b = (Boolean) o;
 			for (int j = array.length - 1; j >= i; j--)
 				if (b == array[j]) return j - i;
 		}

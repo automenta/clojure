@@ -10,7 +10,6 @@
 
 package clojure.lang;
 
-import java.io.Serializable;
 import java.util.*;
 
 public class PersistentList extends ASeq implements IPersistentList, IReduce, List, Counted {
@@ -149,7 +148,7 @@ public Object reduce(IFn f, Object start) {
 
 
     static class EmptyList extends Obj implements IPersistentList, List, ISeq, Counted, IHashEq{
-	static final int hasheq = Murmur3.hashOrdered(Collections.EMPTY_LIST);
+	static final int hasheq = Murmur3.hashOrdered(Collections.emptyList());
 
 	public int hashCode(){
 		return 1;
@@ -231,20 +230,7 @@ public Object reduce(IFn f, Object start) {
 	}
 
 	public Iterator iterator(){
-		return new Iterator(){
-
-			public boolean hasNext(){
-				return false;
-			}
-
-			public Object next(){
-				throw new NoSuchElementException();
-			}
-
-			public void remove(){
-				throw new UnsupportedOperationException();
-			}
-		};
+		return new MyIterator();
 	}
 
 	public Object[] toArray(){
@@ -337,6 +323,20 @@ public Object reduce(IFn f, Object start) {
 	}
 
 
-}
+		private static class MyIterator implements Iterator {
+
+			public boolean hasNext(){
+				return false;
+			}
+
+			public Object next(){
+				throw new NoSuchElementException();
+			}
+
+			public void remove(){
+				throw new UnsupportedOperationException();
+			}
+		}
+	}
 
 }

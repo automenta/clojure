@@ -20,7 +20,7 @@ final Object[] array;
 final int off;
 final int end;
 
-public ArrayChunk(Object[] array){
+public ArrayChunk(Object... array){
 	this(array, 0, array.length);
 }
 

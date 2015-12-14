@@ -298,7 +298,7 @@ static final class TransientHashMap extends ATransientMap {
 
 
 	TransientHashMap(PersistentHashMap m) {
-		this(new AtomicReference<Thread>(Thread.currentThread()), m.root, m.count, m.hasNull, m.nullValue);
+		this(new AtomicReference<>(Thread.currentThread()), m.root, m.count, m.hasNull, m.nullValue);
 	}
 	
 	TransientHashMap(AtomicReference<Thread> edit, INode root, int count, boolean hasNull, Object nullValue) {
@@ -401,7 +401,7 @@ final static class ArrayNode implements INode{
 	final INode[] array;
 	final AtomicReference<Thread> edit;
 
-	ArrayNode(AtomicReference<Thread> edit, int count, INode[] array){
+	ArrayNode(AtomicReference<Thread> edit, int count, INode... array){
 		this.array = array;
 		this.edit = edit;
 		this.count = count;
@@ -471,14 +471,10 @@ final static class ArrayNode implements INode{
 
 	public Object fold(final IFn combinef, final IFn reducef,
 	                   final IFn fjtask, final IFn fjfork, final IFn fjjoin){
-		List<Callable> tasks = new ArrayList();
+		List<Callable> tasks = new ArrayList(array.length);
 		for(final INode node : array){
 			if(node != null){
-				tasks.add(new Callable(){
-					public Object call() throws Exception{
-						return node.fold(combinef, reducef, fjtask, fjfork, fjjoin);
-					}
-				});
+				tasks.add(new MyCallable(node, combinef, reducef, fjtask, fjfork, fjjoin));
 				}
 			}
 
@@ -585,7 +581,7 @@ final static class ArrayNode implements INode{
 		final int i;
 		final ISeq s; 
 		
-		static ISeq create(INode[] nodes) {
+		static ISeq create(INode... nodes) {
 			return create(null, nodes, 0, null);
 		}
 		
@@ -664,6 +660,28 @@ final static class ArrayNode implements INode{
             throw new UnsupportedOperationException();
         }
     }
+
+	private static class MyCallable implements Callable {
+		private final INode node;
+		private final IFn combinef;
+		private final IFn reducef;
+		private final IFn fjtask;
+		private final IFn fjfork;
+		private final IFn fjjoin;
+
+		public MyCallable(INode node, IFn combinef, IFn reducef, IFn fjtask, IFn fjfork, IFn fjjoin) {
+			this.node = node;
+			this.combinef = combinef;
+			this.reducef = reducef;
+			this.fjtask = fjtask;
+			this.fjfork = fjfork;
+			this.fjjoin = fjjoin;
+		}
+
+		public Object call() throws Exception{
+            return node.fold(combinef, reducef, fjtask, fjfork, fjjoin);
+        }
+	}
 }
 
 final static class BitmapIndexedNode implements INode{
@@ -677,7 +695,7 @@ final static class BitmapIndexedNode implements INode{
 		return Integer.bitCount(bitmap & (bit - 1));
 	}
 
-	BitmapIndexedNode(AtomicReference<Thread> edit, int bitmap, Object[] array){
+	BitmapIndexedNode(AtomicReference<Thread> edit, int bitmap, Object... array){
 		this.bitmap = bitmap;
 		this.array = array;
 		this.edit = edit;
@@ -1013,7 +1031,7 @@ final static class HashCollisionNode implements INode{
 		return new HashCollisionNode(edit, hash, count, newArray);
 	}
 
-	private HashCollisionNode ensureEditable(AtomicReference<Thread> edit, int count, Object[] array){
+	private HashCollisionNode ensureEditable(AtomicReference<Thread> edit, int count, Object... array){
 		if(this.edit == edit) {
 			this.array = array;
 			this.count = count;
@@ -1196,7 +1214,7 @@ private static INode createNode(int shift, Object key1, Object val1, int key2has
 	if(key1hash == key2hash)
 		return new HashCollisionNode(null, key1hash, 2, new Object[] {key1, val1, key2, val2});
 	Box addedLeaf = new Box(null);
-	AtomicReference<Thread> edit = new AtomicReference<Thread>();
+	AtomicReference<Thread> edit = new AtomicReference<>();
 	return BitmapIndexedNode.EMPTY
 		.assoc(edit, shift, key1hash, key1, val1, addedLeaf)
 		.assoc(edit, shift, key2hash, key2, val2, addedLeaf);
@@ -1259,24 +1277,23 @@ static final class NodeIter implements Iterator {
         return advance();
     }
 
-    public Object next(){
-        Object ret = nextEntry;
-        if(ret != NULL)
-        {
-            nextEntry = NULL;
-            return ret;
-        }
-        else if(nextIter != null)
-        {
-            ret = nextIter.next();
-            if(! nextIter.hasNext())
-                nextIter = null;
-            return ret;
-        }
-        else if(advance())
-            return next();
-        throw new NoSuchElementException();
-    }
+	public Object next() {
+		while (true) {
+			Object ret = nextEntry;
+			if (ret != NULL) {
+				nextEntry = NULL;
+				return ret;
+			} else if (nextIter != null) {
+				ret = nextIter.next();
+				if (!nextIter.hasNext())
+					nextIter = null;
+				return ret;
+			} else if (advance()) {
+				continue;
+			}
+			throw new NoSuchElementException();
+		}
+	}
 
     public void remove(){
         throw new UnsupportedOperationException();
@@ -1292,7 +1309,7 @@ static final class NodeSeq extends ASeq {
 		this(null, array, i, null);
 	}
 
-	static ISeq create(Object[] array) {
+	static ISeq create(Object... array) {
 		return create(array, 0, null);
 	}
 

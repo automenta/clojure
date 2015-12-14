@@ -17,6 +17,7 @@ import java.lang.ref.Reference;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.ref.ReferenceQueue;
 
@@ -39,19 +40,19 @@ public interface EquivPred{
     boolean equiv(Object k1, Object k2);
 }
 
-static EquivPred equivNull = new EquivPred() {
+static final EquivPred equivNull = new EquivPred() {
         public boolean equiv(Object k1, Object k2) {
             return k2 == null;
         }
     };
 
-static EquivPred equivEquals = new EquivPred(){
+static final EquivPred equivEquals = new EquivPred(){
         public boolean equiv(Object k1, Object k2) {
             return k1.equals(k2);
         }
     };
 
-static EquivPred equivNumber = new EquivPred(){
+static final EquivPred equivNumber = new EquivPred(){
         public boolean equiv(Object k1, Object k2) {
             if(k2 instanceof Number)
                 return Numbers.equal((Number) k1, (Number) k2);
@@ -59,7 +60,7 @@ static EquivPred equivNumber = new EquivPred(){
         }
     };
 
-static EquivPred equivColl = new EquivPred(){
+static final EquivPred equivColl = new EquivPred(){
         public boolean equiv(Object k1, Object k2) {
             if(k1 instanceof IPersistentCollection || k2 instanceof IPersistentCollection)
                 return pcequiv(k1, k2);
@@ -128,7 +129,7 @@ static public boolean pcequiv(Object k1, Object k2){
 static public boolean equals(Object k1, Object k2){
 	if(k1 == k2)
 		return true;
-	return k1 != null && k1.equals(k2);
+	return Objects.equals(k1, k2);
 }
 
 static public boolean identical(Object k1, Object k2){
@@ -244,7 +245,7 @@ static private <T extends Throwable> void sneakyThrow0(Throwable t) throws T {
 	throw (T) t;
 }
 
-static public Object loadWithClass(String scriptbase, Class<?> loadFrom) throws IOException, ClassNotFoundException{
+static public Object loadWithClass(String scriptbase, Class<?> loadFrom) {
     Var.pushThreadBindings(RT.map(new Object[] { Compiler.LOADER, loadFrom.getClassLoader() }));
     try {
         return RT.var("clojure.core", "load").invoke(scriptbase);

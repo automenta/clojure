@@ -604,28 +604,28 @@ public class InstructionAdapter extends MethodVisitor {
     @Override
     public void visitLdcInsn(final Object cst) {
         if (cst instanceof Integer) {
-            int val = ((Integer) cst).intValue();
+            int val = (Integer) cst;
             iconst(val);
         } else if (cst instanceof Byte) {
             int val = ((Byte) cst).intValue();
             iconst(val);
         } else if (cst instanceof Character) {
-            int val = ((Character) cst).charValue();
+            int val = (Character) cst;
             iconst(val);
         } else if (cst instanceof Short) {
             int val = ((Short) cst).intValue();
             iconst(val);
         } else if (cst instanceof Boolean) {
-            int val = ((Boolean) cst).booleanValue() ? 1 : 0;
+            int val = (Boolean) cst ? 1 : 0;
             iconst(val);
         } else if (cst instanceof Float) {
-            float val = ((Float) cst).floatValue();
+            float val = (Float) cst;
             fconst(val);
         } else if (cst instanceof Long) {
-            long val = ((Long) cst).longValue();
+            long val = (Long) cst;
             lconst(val);
         } else if (cst instanceof Double) {
-            double val = ((Double) cst).doubleValue();
+            double val = (Double) cst;
             dconst(val);
         } else if (cst instanceof String) {
             aconst(cst);
@@ -651,7 +651,7 @@ public class InstructionAdapter extends MethodVisitor {
 
     @Override
     public void visitLookupSwitchInsn(final Label dflt, final int[] keys,
-            final Label[] labels) {
+            final Label... labels) {
         lookupswitch(dflt, keys, labels);
     }
 
@@ -957,7 +957,7 @@ public class InstructionAdapter extends MethodVisitor {
     }
 
     public void lookupswitch(final Label dflt, final int[] keys,
-            final Label[] labels) {
+            final Label... labels) {
         mv.visitLookupSwitchInsn(dflt, keys, labels);
     }
 
@@ -1006,7 +1006,7 @@ public class InstructionAdapter extends MethodVisitor {
     }
 
     public void invokedynamic(String name, String desc, Handle bsm,
-            Object[] bsmArgs) {
+                              Object... bsmArgs) {
         mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
     }
 

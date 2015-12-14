@@ -198,7 +198,7 @@ public class CodeSizeEvaluator extends MethodVisitor implements Opcodes {
 
     @Override
     public void visitLookupSwitchInsn(final Label dflt, final int[] keys,
-            final Label[] labels) {
+            final Label... labels) {
         minSize += 9 + keys.length * 8;
         maxSize += 12 + keys.length * 8;
         if (mv != null) {

@@ -19,7 +19,7 @@ private static Object[] oa(Object... arr){
 	return arr;
 }
 
-static IPersistentMap ops = RT.map(
+static final IPersistentMap ops = RT.map(
  "public static double clojure.lang.Numbers.add(double,double)", DADD,
  "public static long clojure.lang.Numbers.and(long,long)", LAND,
  "public static long clojure.lang.Numbers.or(long,long)", LOR,
@@ -111,7 +111,7 @@ static IPersistentMap ops = RT.map(
 );
 
 //map to instructions terminated with comparator for branch to false
-static IPersistentMap preds = RT.map(
+static final IPersistentMap preds = RT.map(
   "public static boolean clojure.lang.Numbers.lt(double,double)", oa(DCMPG, IFGE),
   "public static boolean clojure.lang.Numbers.lt(long,long)", oa(LCMP, IFGE),
   "public static boolean clojure.lang.Numbers.equiv(double,double)", oa(DCMPL, IFNE),

@@ -306,22 +306,24 @@ static public Ratio toRatio(Object x){
 	return new Ratio(toBigInteger(x), BigInteger.ONE);
 }
 
-@WarnBoxedMath(false)
-static public Number rationalize(Number x){
-	if(x instanceof Float || x instanceof Double)
-		return rationalize(BigDecimal.valueOf(x.doubleValue()));
-	else if(x instanceof BigDecimal)
-		{
-		BigDecimal bx = (BigDecimal) x;
-		BigInteger bv = bx.unscaledValue();
-		int scale = bx.scale();
-		if(scale < 0)
-			return BigInt.fromBigInteger(bv.multiply(BigInteger.TEN.pow(-scale)));
-		else
-			return divide(bv, BigInteger.TEN.pow(scale));
+	@WarnBoxedMath(false)
+	static public Number rationalize(Number x) {
+		while (true) {
+			if (x instanceof Float || x instanceof Double) {
+				x = BigDecimal.valueOf(x.doubleValue());
+				continue;
+			} else if (x instanceof BigDecimal) {
+				BigDecimal bx = (BigDecimal) x;
+				BigInteger bv = bx.unscaledValue();
+				int scale = bx.scale();
+				if (scale < 0)
+					return BigInt.fromBigInteger(bv.multiply(BigInteger.TEN.pow(-scale)));
+				else
+					return divide(bv, BigInteger.TEN.pow(scale));
+			}
+			return x;
 		}
-	return x;
-}
+	}
 
 //static  Number box(int val){
 //		return Integer.valueOf(val);

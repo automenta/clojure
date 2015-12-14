@@ -796,6 +796,8 @@ final class Frame {
         return t;
     }
 
+    final static int[] emptyInt = new int[0];
+
     /**
      * Initializes the input frame of the first basic block from the method
      * descriptor.
@@ -811,8 +813,10 @@ final class Frame {
      */
     void initInputFrame(final ClassWriter cw, final int access,
             final Type[] args, final int maxLocals) {
-        inputLocals = new int[maxLocals];
-        inputStack = new int[0];
+
+        int[] inputLocals = inputLocals = new int[maxLocals];
+
+        inputStack = emptyInt;
         int i = 0;
         if ((access & Opcodes.ACC_STATIC) == 0) {
             if ((access & MethodWriter.ACC_CONSTRUCTOR) == 0) {
@@ -821,8 +825,8 @@ final class Frame {
                 inputLocals[i++] = UNINITIALIZED_THIS;
             }
         }
-        for (int j = 0; j < args.length; ++j) {
-            int t = type(cw, args[j].getDescriptor());
+        for (Type arg : args) {
+            int t = type(cw, arg.getDescriptor());
             inputLocals[i++] = t;
             if (t == LONG || t == DOUBLE) {
                 inputLocals[i++] = TOP;

@@ -107,7 +107,7 @@ public abstract class ClassVisitor {
      *            <tt>null</tt>.
      */
     public void visit(int version, int access, String name, String signature,
-            String superName, String[] interfaces) {
+                      String superName, String... interfaces) {
         if (cv != null) {
             cv.visit(version, access, name, signature, superName, interfaces);
         }
@@ -154,18 +154,20 @@ public abstract class ClassVisitor {
     /**
      * Visits an annotation of the class.
      *
-     * @param desc
-     *            the class descriptor of the annotation class.
-     * @param visible
-     *            <tt>true</tt> if the annotation is visible at runtime.
+     * @param desc    the class descriptor of the annotation class.
+     * @param visible <tt>true</tt> if the annotation is visible at runtime.
      * @return a visitor to visit the annotation values, or <tt>null</tt> if
-     *         this visitor is not interested in visiting this annotation.
+     * this visitor is not interested in visiting this annotation.
      */
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        if (cv != null) {
-            return cv.visitAnnotation(desc, visible);
+        ClassVisitor other = this;
+        while (true) {
+            if (other.cv != null) {
+                other = other.cv;
+                continue;
+            }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -208,36 +210,35 @@ public abstract class ClassVisitor {
     /**
      * Visits a field of the class.
      *
-     * @param access
-     *            the field's access flags (see {@link Opcodes}). This parameter
-     *            also indicates if the field is synthetic and/or deprecated.
-     * @param name
-     *            the field's name.
-     * @param desc
-     *            the field's descriptor (see {@link Type Type}).
-     * @param signature
-     *            the field's signature. May be <tt>null</tt> if the field's
-     *            type does not use generic types.
-     * @param value
-     *            the field's initial value. This parameter, which may be
-     *            <tt>null</tt> if the field does not have an initial value,
-     *            must be an {@link Integer}, a {@link Float}, a {@link Long}, a
-     *            {@link Double} or a {@link String} (for <tt>int</tt>,
-     *            <tt>float</tt>, <tt>long</tt> or <tt>String</tt> fields
-     *            respectively). <i>This parameter is only used for static
-     *            fields</i>. Its value is ignored for non static fields, which
-     *            must be initialized through bytecode instructions in
-     *            constructors or methods.
+     * @param access    the field's access flags (see {@link Opcodes}). This parameter
+     *                  also indicates if the field is synthetic and/or deprecated.
+     * @param name      the field's name.
+     * @param desc      the field's descriptor (see {@link Type Type}).
+     * @param signature the field's signature. May be <tt>null</tt> if the field's
+     *                  type does not use generic types.
+     * @param value     the field's initial value. This parameter, which may be
+     *                  <tt>null</tt> if the field does not have an initial value,
+     *                  must be an {@link Integer}, a {@link Float}, a {@link Long}, a
+     *                  {@link Double} or a {@link String} (for <tt>int</tt>,
+     *                  <tt>float</tt>, <tt>long</tt> or <tt>String</tt> fields
+     *                  respectively). <i>This parameter is only used for static
+     *                  fields</i>. Its value is ignored for non static fields, which
+     *                  must be initialized through bytecode instructions in
+     *                  constructors or methods.
      * @return a visitor to visit field annotations and attributes, or
-     *         <tt>null</tt> if this class visitor is not interested in visiting
-     *         these annotations and attributes.
+     * <tt>null</tt> if this class visitor is not interested in visiting
+     * these annotations and attributes.
      */
     public FieldVisitor visitField(int access, String name, String desc,
-            String signature, Object value) {
-        if (cv != null) {
-            return cv.visitField(access, name, desc, signature, value);
+                                   String signature, Object value) {
+        ClassVisitor other = this;
+        while (true) {
+            if (other.cv != null) {
+                other = other.cv;
+                continue;
+            }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -245,32 +246,31 @@ public abstract class ClassVisitor {
      * {@link MethodVisitor} instance (or <tt>null</tt>) each time it is called,
      * i.e., it should not return a previously returned visitor.
      *
-     * @param access
-     *            the method's access flags (see {@link Opcodes}). This
-     *            parameter also indicates if the method is synthetic and/or
-     *            deprecated.
-     * @param name
-     *            the method's name.
-     * @param desc
-     *            the method's descriptor (see {@link Type Type}).
-     * @param signature
-     *            the method's signature. May be <tt>null</tt> if the method
-     *            parameters, return type and exceptions do not use generic
-     *            types.
-     * @param exceptions
-     *            the internal names of the method's exception classes (see
-     *            {@link Type#getInternalName() getInternalName}). May be
-     *            <tt>null</tt>.
+     * @param access     the method's access flags (see {@link Opcodes}). This
+     *                   parameter also indicates if the method is synthetic and/or
+     *                   deprecated.
+     * @param name       the method's name.
+     * @param desc       the method's descriptor (see {@link Type Type}).
+     * @param signature  the method's signature. May be <tt>null</tt> if the method
+     *                   parameters, return type and exceptions do not use generic
+     *                   types.
+     * @param exceptions the internal names of the method's exception classes (see
+     *                   {@link Type#getInternalName() getInternalName}). May be
+     *                   <tt>null</tt>.
      * @return an object to visit the byte code of the method, or <tt>null</tt>
-     *         if this class visitor is not interested in visiting the code of
-     *         this method.
+     * if this class visitor is not interested in visiting the code of
+     * this method.
      */
     public MethodVisitor visitMethod(int access, String name, String desc,
-            String signature, String[] exceptions) {
-        if (cv != null) {
-            return cv.visitMethod(access, name, desc, signature, exceptions);
+                                     String signature, String... exceptions) {
+        ClassVisitor other = this;
+        while (true) {
+            if (other.cv != null) {
+                other = other.cv;
+                continue;
+            }
+            return null;
         }
-        return null;
     }
 
     /**

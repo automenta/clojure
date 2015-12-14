@@ -19,7 +19,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class XMLHandler extends DefaultHandler{
-ContentHandler h;
+final ContentHandler h;
 
 
 public XMLHandler(ContentHandler h){

@@ -12,22 +12,24 @@
 
 package clojure.lang;
 
-import java.net.MalformedURLException;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.Callable;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.gs.collections.impl.list.mutable.FastList;
+
 import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.JarURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.net.URL;
-import java.net.JarURLConnection;
-import java.nio.charset.Charset;
-import java.net.URLConnection;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RT{
 
@@ -167,7 +169,7 @@ Symbol.intern("SuppressWarnings"), SuppressWarnings.class
 );
 
 // single instance of UTF-8 Charset, so as to avoid catching UnsupportedCharsetExceptions everywhere
-static public Charset UTF8 = Charset.forName("UTF-8");
+static public final Charset UTF8 = Charset.forName("UTF-8");
 
 static Object readTrueFalseUnknown(String s){
 	if(s.equals("true"))
@@ -190,7 +192,7 @@ final static public Var ERR =
 final static Keyword TAG_KEY = Keyword.intern(null, "tag");
 final static Keyword CONST_KEY = Keyword.intern(null, "const");
 final static public Var AGENT = Var.intern(CLOJURE_NS, Symbol.intern("*agent*"), null).setDynamic();
-static Object readeval = readTrueFalseUnknown(System.getProperty("clojure.read.eval","true"));
+static final Object readeval = readTrueFalseUnknown(System.getProperty("clojure.read.eval","true"));
 final static public Var READEVAL = Var.intern(CLOJURE_NS, Symbol.intern("*read-eval*"),  readeval).setDynamic();
 final static public Var DATA_READERS = Var.intern(CLOJURE_NS, Symbol.intern("*data-readers*"), RT.map()).setDynamic();
 final static public Var DEFAULT_DATA_READER_FN = Var.intern(CLOJURE_NS, Symbol.intern("*default-data-reader-fn*"), RT.map()).setDynamic();
@@ -198,11 +200,11 @@ final static public Var DEFAULT_DATA_READERS = Var.intern(CLOJURE_NS, Symbol.int
 final static public Var SUPPRESS_READ = Var.intern(CLOJURE_NS, Symbol.intern("*suppress-read*"), null).setDynamic();
 final static public Var ASSERT = Var.intern(CLOJURE_NS, Symbol.intern("*assert*"), T).setDynamic();
 final static public Var MATH_CONTEXT = Var.intern(CLOJURE_NS, Symbol.intern("*math-context*"), null).setDynamic();
-static Keyword LINE_KEY = Keyword.intern(null, "line");
-static Keyword COLUMN_KEY = Keyword.intern(null, "column");
-static Keyword FILE_KEY = Keyword.intern(null, "file");
-static Keyword DECLARED_KEY = Keyword.intern(null, "declared");
-static Keyword DOC_KEY = Keyword.intern(null, "doc");
+static final Keyword LINE_KEY = Keyword.intern(null, "line");
+static final Keyword COLUMN_KEY = Keyword.intern(null, "column");
+static final Keyword FILE_KEY = Keyword.intern(null, "file");
+static final Keyword DECLARED_KEY = Keyword.intern(null, "declared");
+static final Keyword DOC_KEY = Keyword.intern(null, "doc");
 final static public Var USE_CONTEXT_CLASSLOADER =
 		Var.intern(CLOJURE_NS, Symbol.intern("*use-context-classloader*"), T).setDynamic();
 //boolean
@@ -252,7 +254,7 @@ final static IFn bootNamespace = new AFn(){
 	}
 };
 
-public static List<String> processCommandLine(String[] args){
+public static List<String> processCommandLine(String... args){
 	List<String> arglist = Arrays.asList(args);
 	int split = arglist.indexOf("--");
 	if(split >= 0) {
@@ -287,7 +289,7 @@ private static final class DefaultComparator implements Comparator, Serializable
     }
 }
 
-static AtomicInteger id = new AtomicInteger(1);
+static final AtomicInteger id = new AtomicInteger(1);
 
 static public void addURL(Object url) throws MalformedURLException{
 	URL u = (url instanceof String) ? (new URL((String) url)) : (URL) url;
@@ -404,7 +406,7 @@ static void compile(String cljfile) throws IOException{
 	if(ins != null) {
 		try {
 			Compiler.compile(new InputStreamReader(ins, UTF8), cljfile,
-			                 cljfile.substring(1 + cljfile.lastIndexOf("/")));
+			                 cljfile.substring(1 + cljfile.lastIndexOf('/')));
 		}
 		finally {
 			ins.close();
@@ -419,7 +421,7 @@ static public void load(String scriptbase) throws IOException, ClassNotFoundExce
 	load(scriptbase, true);
 }
 
-static public void load(String scriptbase, boolean failIfNotFound) throws IOException, ClassNotFoundException{
+static public void load(String scriptbase, boolean failIfNotFound) throws IOException {
 	String classfile = scriptbase + LOADER_SUFFIX + ".class";
 	String cljfile = scriptbase + ".clj";
 	String scriptfile = cljfile;
@@ -543,50 +545,50 @@ static ISeq seqFrom(Object coll){
 	}
 }
 
-static public Iterator iter(Object coll){
-	if(coll instanceof Iterable)
-		return ((Iterable)coll).iterator();
-	else if(coll == null)
-		return new Iterator(){
-			public boolean hasNext(){
-				return false;
-			}
+	static public Iterator iter(Object coll) {
+		while (true) {
+			if (coll instanceof Iterable)
+				return ((Iterable) coll).iterator();
+			else if (coll == null)
+				return new Iterator() {
+					public boolean hasNext() {
+						return false;
+					}
 
-			public Object next(){
-				throw new NoSuchElementException();
-			}
+					public Object next() {
+						throw new NoSuchElementException();
+					}
 
-			public void remove(){
-				throw new UnsupportedOperationException();
+					public void remove() {
+						throw new UnsupportedOperationException();
+					}
+				};
+			else if (coll instanceof Map) {
+				return ((Map) coll).entrySet().iterator();
+			} else if (coll instanceof String) {
+				final String s = (String) coll;
+				return new Iterator() {
+					int i = 0;
+
+					public boolean hasNext() {
+						return i < s.length();
+					}
+
+					public Object next() {
+						return s.charAt(i++);
+					}
+
+					public void remove() {
+						throw new UnsupportedOperationException();
+					}
+				};
+			} else if (coll.getClass().isArray()) {
+				return ArrayIter.createFromObject(coll);
+			} else {
+				coll = seq(coll);
 			}
-		};
-	else if(coll instanceof Map){
-		return ((Map)coll).entrySet().iterator();
+		}
 	}
-	else if(coll instanceof String){
-		final String s = (String) coll;
-		return new Iterator(){
-			int i = 0;
-
-			public boolean hasNext(){
-				return i < s.length();
-			}
-
-			public Object next(){
-				return s.charAt(i++);
-			}
-
-			public void remove(){
-				throw new UnsupportedOperationException();
-			}
-		};
-	}
-  else if(coll.getClass().isArray()){
-    return ArrayIter.createFromObject(coll);
-  }
-	else
-		return iter(seq(coll));
-}
 
 static public Object seqOrElse(Object o) {
 	return seq(o) == null ? null : o;
@@ -1012,7 +1014,7 @@ static public Number box(double x){
 
 static public char charCast(Object x){
 	if(x instanceof Character)
-		return ((Character) x).charValue();
+		return (Character) x;
 
 	long n = ((Number) x).longValue();
 	if(n < Character.MIN_VALUE || n > Character.MAX_VALUE)
@@ -1067,7 +1069,7 @@ static public char charCast(double x){
 
 static public boolean booleanCast(Object x){
 	if(x instanceof Boolean)
-		return ((Boolean) x).booleanValue();
+		return (Boolean) x;
 	return x != null;
 }
 
@@ -1077,7 +1079,7 @@ static public boolean booleanCast(boolean x){
 
 static public byte byteCast(Object x){
 	if(x instanceof Byte)
-		return ((Byte) x).byteValue();
+		return (Byte) x;
 	long n = longCast(x);
 	if(n < Byte.MIN_VALUE || n > Byte.MAX_VALUE)
 		throw new IllegalArgumentException("Value out of range for byte: " + x);
@@ -1124,7 +1126,7 @@ static public byte byteCast(double x){
 
 static public short shortCast(Object x){
 	if(x instanceof Short)
-		return ((Short) x).shortValue();
+		return (Short) x;
 	long n = longCast(x);
 	if(n < Short.MIN_VALUE || n > Short.MAX_VALUE)
 		throw new IllegalArgumentException("Value out of range for short: " + x);
@@ -1168,13 +1170,13 @@ static public short shortCast(double x){
 
 static public int intCast(Object x){
 	if(x instanceof Integer)
-		return ((Integer)x).intValue();
+		return (Integer) x;
 	if(x instanceof Number)
 		{
 		long n = longCast(x);
 		return intCast(n);
 		}
-	return ((Character) x).charValue();
+	return (Character) x;
 }
 
 static public int intCast(char x){
@@ -1212,34 +1214,32 @@ static public int intCast(double x){
 	return (int) x;
 }
 
-static public long longCast(Object x){
-	if(x instanceof Integer || x instanceof Long)
-		return ((Number) x).longValue();
-	else if (x instanceof BigInt)
-		{
-		BigInt bi = (BigInt) x;
-		if(bi.bipart == null)
-			return bi.lpart;
-		else
-			throw new IllegalArgumentException("Value out of range for long: " + x);
+	static public long longCast(Object x) {
+		while (true) {
+			if (x instanceof Integer || x instanceof Long)
+				return ((Number) x).longValue();
+			else if (x instanceof BigInt) {
+				BigInt bi = (BigInt) x;
+				if (bi.bipart == null)
+					return bi.lpart;
+				else
+					throw new IllegalArgumentException("Value out of range for long: " + x);
+			} else if (x instanceof BigInteger) {
+				BigInteger bi = (BigInteger) x;
+				if (bi.bitLength() < 64)
+					return bi.longValue();
+				else
+					throw new IllegalArgumentException("Value out of range for long: " + x);
+			} else if (x instanceof Byte || x instanceof Short)
+				return ((Number) x).longValue();
+			else if (x instanceof Ratio) {
+				x = ((Ratio) x).bigIntegerValue();
+			} else if (x instanceof Character)
+				return longCast(((Character) x).charValue());
+			else
+				return longCast(((Number) x).doubleValue());
 		}
-	else if (x instanceof BigInteger)
-		{
-		BigInteger bi = (BigInteger) x;
-		if(bi.bitLength() < 64)
-			return bi.longValue();
-		else
-			throw new IllegalArgumentException("Value out of range for long: " + x);
-		}
-	else if (x instanceof Byte || x instanceof Short)
-	    return ((Number) x).longValue();
-	else if (x instanceof Ratio)
-	    return longCast(((Ratio)x).bigIntegerValue());
-	else if (x instanceof Character)
-	    return longCast(((Character) x).charValue());
-	else
-	    return longCast(((Number)x).doubleValue());
-}
+	}
 
 static public long longCast(byte x){
     return x;
@@ -1271,7 +1271,7 @@ static public long longCast(double x){
 
 static public float floatCast(Object x){
 	if(x instanceof Float)
-		return ((Float) x).floatValue();
+		return (Float) x;
 
 	double n = ((Number) x).doubleValue();
 	if(n < -Float.MAX_VALUE || n > Float.MAX_VALUE)
@@ -1394,7 +1394,7 @@ static public short uncheckedShortCast(double x){
 
 static public char uncheckedCharCast(Object x){
     if(x instanceof Character)
-	return ((Character) x).charValue();
+	return (Character) x;
     return (char) ((Number) x).longValue();
 }
 
@@ -1429,7 +1429,7 @@ static public char uncheckedCharCast(double x){
 static public int uncheckedIntCast(Object x){
     if(x instanceof Number)
 	return ((Number)x).intValue();
-    return ((Character) x).charValue();
+    return (Character) x;
 }
 
 static public int uncheckedIntCast(byte x){
@@ -1625,7 +1625,7 @@ static public ISeq listStar(Object arg1, Object arg2, Object arg3, Object arg4, 
 	return (ISeq) cons(arg1, cons(arg2, cons(arg3, cons(arg4, cons(arg5, rest)))));
 }
 
-static public ISeq arrayToList(Object[] a) {
+static public ISeq arrayToList(Object... a) {
 	ISeq ret = null;
 	for(int i = a.length - 1; i >= 0; --i)
 		ret = (ISeq) cons(a[i], ret);
@@ -1654,7 +1654,7 @@ static public Object[] toArray(Object coll) {
 	else if(coll instanceof Collection)
 		return ((Collection) coll).toArray();
 	else if(coll instanceof Iterable) {
-		ArrayList ret = new ArrayList();
+		List ret = new FastList();
 		for(Object o : (Iterable)coll)
 			ret.add(o);
 		return ret.toArray();
@@ -1662,15 +1662,17 @@ static public Object[] toArray(Object coll) {
 		return ((Map) coll).entrySet().toArray();
 	else if(coll instanceof String) {
 		char[] chars = ((String) coll).toCharArray();
-		Object[] ret = new Object[chars.length];
-		for(int i = 0; i < chars.length; i++)
+		int clen = chars.length;
+		Object[] ret = new Object[clen];
+		for(int i = 0; i < clen; i++)
 			ret[i] = chars[i];
 		return ret;
 	}
 	else if(coll.getClass().isArray()) {
 		ISeq s = (seq(coll));
 		Object[] ret = new Object[count(s)];
-		for(int i = 0; i < ret.length; i++, s = s.next())
+		int rlen = ret.length;
+		for(int i = 0; i < rlen; i++, s = s.next())
 			ret[i] = s.first();
 		return ret;
 	}
@@ -1687,7 +1689,7 @@ static public Object[] seqToArray(ISeq seq){
 }
 
     // supports java Collection.toArray(T[])
-    static public Object[] seqToPassedArray(ISeq seq, Object[] passed){
+    static public Object[] seqToPassedArray(ISeq seq, Object... passed){
         Object[] dest = passed;
         int len = count(seq);
         if (len > dest.length) {
@@ -1933,7 +1935,7 @@ static public void print(Object x, Writer w) throws IOException{
 			w.write('}');
 		}
 		else if(x instanceof Character) {
-			char c = ((Character) x).charValue();
+			char c = (Character) x;
 			if(!readably)
 				w.write(c);
 			else {
@@ -1980,11 +1982,11 @@ static public void print(Object x, Writer w) throws IOException{
 		}
 		else if(x instanceof Var) {
 			Var v = (Var) x;
-			w.write("#=(var " + v.ns.name + "/" + v.sym + ")");
+			w.write("#=(var " + v.ns.name + '/' + v.sym + ')');
 		}
 		else if(x instanceof Pattern) {
 			Pattern p = (Pattern) x;
-			w.write("#\"" + p.pattern() + "\"");
+			w.write("#\"" + p.pattern() + '"');
 		}
 		else w.write(x.toString());
 	}
@@ -2016,7 +2018,7 @@ static public void formatStandard(Writer w, Object obj) throws IOException{
 	}
 	else if(obj instanceof Character) {
 		w.write('\\');
-		char c = ((Character) obj).charValue();
+		char c = (Character) obj;
 		switch(c) {
 			case '\n':
 				w.write("newline");
@@ -2205,11 +2207,11 @@ static public float aset(float[] xs, int i, float v){
 	return v;
 }
 
-static public int alength(float[] xs){
+static public int alength(float... xs){
 	return xs.length;
 }
 
-static public float[] aclone(float[] xs){
+static public float[] aclone(float... xs){
 	return xs.clone();
 }
 
@@ -2222,11 +2224,11 @@ static public double aset(double[] xs, int i, double v){
 	return v;
 }
 
-static public int alength(double[] xs){
+static public int alength(double... xs){
 	return xs.length;
 }
 
-static public double[] aclone(double[] xs){
+static public double[] aclone(double... xs){
 	return xs.clone();
 }
 
@@ -2239,11 +2241,11 @@ static public int aset(int[] xs, int i, int v){
 	return v;
 }
 
-static public int alength(int[] xs){
+static public int alength(int... xs){
 	return xs.length;
 }
 
-static public int[] aclone(int[] xs){
+static public int[] aclone(int... xs){
 	return xs.clone();
 }
 
@@ -2256,11 +2258,11 @@ static public long aset(long[] xs, int i, long v){
 	return v;
 }
 
-static public int alength(long[] xs){
+static public int alength(long... xs){
 	return xs.length;
 }
 
-static public long[] aclone(long[] xs){
+static public long[] aclone(long... xs){
 	return xs.clone();
 }
 
@@ -2273,11 +2275,11 @@ static public char aset(char[] xs, int i, char v){
 	return v;
 }
 
-static public int alength(char[] xs){
+static public int alength(char... xs){
 	return xs.length;
 }
 
-static public char[] aclone(char[] xs){
+static public char[] aclone(char... xs){
 	return xs.clone();
 }
 
@@ -2290,11 +2292,11 @@ static public byte aset(byte[] xs, int i, byte v){
 	return v;
 }
 
-static public int alength(byte[] xs){
+static public int alength(byte... xs){
 	return xs.length;
 }
 
-static public byte[] aclone(byte[] xs){
+static public byte[] aclone(byte... xs){
 	return xs.clone();
 }
 
@@ -2307,11 +2309,11 @@ static public short aset(short[] xs, int i, short v){
 	return v;
 }
 
-static public int alength(short[] xs){
+static public int alength(short... xs){
 	return xs.length;
 }
 
-static public short[] aclone(short[] xs){
+static public short[] aclone(short... xs){
 	return xs.clone();
 }
 
@@ -2324,11 +2326,11 @@ static public boolean aset(boolean[] xs, int i, boolean v){
 	return v;
 }
 
-static public int alength(boolean[] xs){
+static public int alength(boolean... xs){
 	return xs.length;
 }
 
-static public boolean[] aclone(boolean[] xs){
+static public boolean[] aclone(boolean... xs){
 	return xs.clone();
 }
 
@@ -2341,11 +2343,11 @@ static public Object aset(Object[] xs, int i, Object v){
 	return v;
 }
 
-static public int alength(Object[] xs){
+static public int alength(Object... xs){
 	return xs.length;
 }
 
-static public Object[] aclone(Object[] xs){
+static public Object[] aclone(Object... xs){
 	return xs.clone();
 }
 

@@ -39,7 +39,7 @@ public MethodImplCache(IPersistentMap protocol, Keyword methodk){
 	this(protocol, methodk, 0, 0, RT.EMPTY_ARRAY);
 }
 
-public MethodImplCache(IPersistentMap protocol, Keyword methodk, int shift, int mask, Object[] table){
+public MethodImplCache(IPersistentMap protocol, Keyword methodk, int shift, int mask, Object... table){
     this.protocol = protocol;
     this.methodk = methodk;
     this.shift = shift;

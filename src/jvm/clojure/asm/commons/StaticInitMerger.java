@@ -61,14 +61,14 @@ public class StaticInitMerger extends ClassVisitor {
     @Override
     public void visit(final int version, final int access, final String name,
             final String signature, final String superName,
-            final String[] interfaces) {
+            final String... interfaces) {
         cv.visit(version, access, name, signature, superName, interfaces);
         this.name = name;
     }
 
     @Override
     public MethodVisitor visitMethod(final int access, final String name,
-            final String desc, final String signature, final String[] exceptions) {
+            final String desc, final String signature, final String... exceptions) {
         MethodVisitor mv;
         if ("<clinit>".equals(name)) {
             int a = Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC;

@@ -37,7 +37,7 @@ public MultiFn(String name, IFn dispatchFn, Object defaultDispatchVal, IRef hier
 	this.dispatchFn = dispatchFn;
 	this.defaultDispatchVal = defaultDispatchVal;
 	this.methodTable = PersistentHashMap.EMPTY;
-	this.methodCache = getMethodTable();
+	this.methodCache = methodTable;
 	this.preferTable = PersistentHashMap.EMPTY;
     this.hierarchy = hierarchy;
 	cachedHierarchy = null;
@@ -58,7 +58,7 @@ public MultiFn reset(){
 public MultiFn addMethod(Object dispatchVal, IFn method) {
 	rw.writeLock().lock();
 	try{
-		methodTable = getMethodTable().assoc(dispatchVal, method);
+		methodTable = methodTable.assoc(dispatchVal, method);
 		resetCache();
 		return this;
 	}
@@ -71,7 +71,7 @@ public MultiFn removeMethod(Object dispatchVal) {
 	rw.writeLock().lock();
 	try
 		{
-		methodTable = getMethodTable().without(dispatchVal);
+			methodTable = methodTable.without(dispatchVal);
 		resetCache();
 		return this;
 		}
@@ -89,7 +89,7 @@ public MultiFn preferMethod(Object dispatchValX, Object dispatchValY) {
 			throw new IllegalStateException(
 					String.format("Preference conflict in multimethod '%s': %s is already preferred to %s",
 					              name, dispatchValY, dispatchValX));
-		preferTable = getPreferTable().assoc(dispatchValX, RT.conj((IPersistentCollection) RT.get(getPreferTable(),
+			preferTable = preferTable.assoc(dispatchValX, RT.conj((IPersistentCollection) RT.get(preferTable,
 		                                                                                     dispatchValX,
 		                                                                                     PersistentHashSet.EMPTY),
 		                                                      dispatchValY));
@@ -103,7 +103,7 @@ public MultiFn preferMethod(Object dispatchValX, Object dispatchValY) {
 }
 
 private boolean prefers(Object x, Object y) {
-	IPersistentSet xprefs = (IPersistentSet) getPreferTable().valAt(x);
+	IPersistentSet xprefs = (IPersistentSet) preferTable.valAt(x);
 	if(xprefs != null && xprefs.contains(y))
 		return true;
 	for(ISeq ps = RT.seq(parents.invoke(y)); ps != null; ps = ps.next())
@@ -131,7 +131,7 @@ private IPersistentMap resetCache() {
 	rw.writeLock().lock();
 	try
 		{
-		methodCache = getMethodTable();
+			methodCache = methodTable;
 		cachedHierarchy = hierarchy.deref();
 		return methodCache;
 		}
@@ -158,68 +158,57 @@ private IFn getFn(Object dispatchVal) {
 	return targetFn;
 }
 
-private IFn findAndCacheBestMethod(Object dispatchVal) {
-	rw.readLock().lock();
-	Object bestValue;
-	IPersistentMap mt = methodTable;
-	IPersistentMap pt = preferTable;
-	Object ch = cachedHierarchy;
-	try
-		{
-		Map.Entry bestEntry = null;
-		for(Object o : getMethodTable())
-			{
-			Map.Entry e = (Map.Entry) o;
-			if(isA(dispatchVal, e.getKey()))
-				{
-				if(bestEntry == null || dominates(e.getKey(), bestEntry.getKey()))
-					bestEntry = e;
-				if(!dominates(bestEntry.getKey(), e.getKey()))
-					throw new IllegalArgumentException(
-							String.format(
-									"Multiple methods in multimethod '%s' match dispatch value: %s -> %s and %s, and neither is preferred",
-									name, dispatchVal, e.getKey(), bestEntry.getKey()));
+	private IFn findAndCacheBestMethod(Object dispatchVal) {
+		while (true) {
+			rw.readLock().lock();
+			Object bestValue;
+			IPersistentMap mt = methodTable;
+			IPersistentMap pt = preferTable;
+			Object ch = cachedHierarchy;
+			try {
+				Map.Entry bestEntry = null;
+				for (Object o : methodTable) {
+					Map.Entry e = (Map.Entry) o;
+					if (isA(dispatchVal, e.getKey())) {
+						if (bestEntry == null || dominates(e.getKey(), bestEntry.getKey()))
+							bestEntry = e;
+						if (!dominates(bestEntry.getKey(), e.getKey()))
+							throw new IllegalArgumentException(
+									String.format(
+											"Multiple methods in multimethod '%s' match dispatch value: %s -> %s and %s, and neither is preferred",
+											name, dispatchVal, e.getKey(), bestEntry.getKey()));
+					}
 				}
+				if (bestEntry == null) {
+					bestValue = methodTable.valAt(defaultDispatchVal);
+					if (bestValue == null)
+						return null;
+				} else
+					bestValue = bestEntry.getValue();
+			} finally {
+				rw.readLock().unlock();
 			}
-		if(bestEntry == null)
-			{
-			bestValue = methodTable.valAt(defaultDispatchVal);
-		        if(bestValue == null)
-				return null;
-			}
-		else
-			bestValue = bestEntry.getValue();
-		}
-	finally
-		{
-		rw.readLock().unlock();
-		}
 
 
-	//ensure basis has stayed stable throughout, else redo
-	rw.writeLock().lock();
-	try
-		{
-		if( mt == methodTable &&
-		    pt == preferTable &&
-		    ch == cachedHierarchy &&
-			cachedHierarchy == hierarchy.deref())
-			{
-			//place in cache
-			methodCache = methodCache.assoc(dispatchVal, bestValue);
-			return (IFn) bestValue;
-			}
-		else
-			{
-			resetCache();
-			return findAndCacheBestMethod(dispatchVal);
+			//ensure basis has stayed stable throughout, else redo
+			rw.writeLock().lock();
+			try {
+				if (mt == methodTable &&
+						pt == preferTable &&
+						ch == cachedHierarchy &&
+						cachedHierarchy == hierarchy.deref()) {
+					//place in cache
+					methodCache = methodCache.assoc(dispatchVal, bestValue);
+					return (IFn) bestValue;
+				} else {
+					resetCache();
+
+				}
+			} finally {
+				rw.writeLock().unlock();
 			}
 		}
-	finally
-		{
-		rw.writeLock().unlock();
-		}
-}
+	}
 
 public Object invoke() {
 	return getFn(dispatchFn.invoke()).invoke();

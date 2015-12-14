@@ -37,6 +37,6 @@ public class ExceptionInfo extends RuntimeException implements IExceptionInfo {
     }
 
     public String toString() {
-        return "clojure.lang.ExceptionInfo: " + getMessage() + " " + data.toString();
+        return "clojure.lang.ExceptionInfo: " + getMessage() + ' ' + data.toString();
     }
 }

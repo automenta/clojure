@@ -12,8 +12,6 @@
 
 package clojure.lang;
 
-import java.io.StringWriter;
-
 public abstract class AMapEntry extends APersistentVector implements IMapEntry{
 
 public Object nth(int i){

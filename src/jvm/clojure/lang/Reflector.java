@@ -22,7 +22,7 @@ import java.util.List;
 
 public class Reflector{
 
-public static Object invokeInstanceMethod(Object target, String methodName, Object[] args) {
+public static Object invokeInstanceMethod(Object target, String methodName, Object... args) {
 	Class c = target.getClass();
 	List methods = getMethods(c, args.length, methodName, false);
 	return invokeMatchingMethod(methodName, methods, target, args);
@@ -44,7 +44,7 @@ private static String noMethodReport(String methodName, Object target){
 	 return "No matching method found: " + methodName
 			+ (target==null?"":" for " + target.getClass());
 }
-static Object invokeMatchingMethod(String methodName, List methods, Object target, Object[] args)
+static Object invokeMatchingMethod(String methodName, List methods, Object target, Object... args)
 		{
 	Method m = null;
 	Object[] boxedArgs = null;
@@ -60,17 +60,14 @@ static Object invokeMatchingMethod(String methodName, List methods, Object targe
 	else //overloaded w/same arity
 		{
 		Method foundm = null;
-		for(Iterator i = methods.iterator(); i.hasNext();)
-			{
-			m = (Method) i.next();
+			for (Object method : methods) {
+				m = (Method) method;
 
-			Class[] params = m.getParameterTypes();
-			if(isCongruent(params, args))
-				{
-				if(foundm == null || Compiler.subsumes(params, foundm.getParameterTypes()))
-					{
-					foundm = m;
-					boxedArgs = boxArgs(params, args);
+				Class[] params = m.getParameterTypes();
+				if (isCongruent(params, args)) {
+					if (foundm == null || Compiler.subsumes(params, foundm.getParameterTypes())) {
+						foundm = m;
+						boxedArgs = boxArgs(params, args);
 					}
 				}
 			}
@@ -99,29 +96,26 @@ static Object invokeMatchingMethod(String methodName, List methods, Object targe
 
 }
 
-public static Method getAsMethodOfPublicBase(Class c, Method m){
-	for(Class iface : c.getInterfaces())
-		{
-		for(Method im : iface.getMethods())
-			{
-			if(isMatch(im, m))
-				{
-				return im;
+	public static Method getAsMethodOfPublicBase(Class c, Method m) {
+		while (true) {
+			for (Class iface : c.getInterfaces()) {
+				for (Method im : iface.getMethods()) {
+					if (isMatch(im, m)) {
+						return im;
+					}
 				}
 			}
-		}
-	Class sc = c.getSuperclass();
-	if(sc == null)
-		return null;
-	for(Method scm : sc.getMethods())
-		{
-		if(isMatch(scm, m))
-			{
-			return scm;
+			Class sc = c.getSuperclass();
+			if (sc == null)
+				return null;
+			for (Method scm : sc.getMethods()) {
+				if (isMatch(scm, m)) {
+					return scm;
+				}
 			}
+			c = sc;
 		}
-	return getAsMethodOfPublicBase(sc, m);
-}
+	}
 
 public static boolean isMatch(Method lhs, Method rhs) {
 	if(!lhs.getName().equals(rhs.getName())
@@ -147,16 +141,14 @@ public static boolean isMatch(Method lhs, Method rhs) {
 		return match;
 }
 
-public static Object invokeConstructor(Class c, Object[] args) {
+public static Object invokeConstructor(Class c, Object... args) {
 	try
 		{
 		Constructor[] allctors = c.getConstructors();
 		ArrayList ctors = new ArrayList();
-		for(int i = 0; i < allctors.length; i++)
-			{
-			Constructor ctor = allctors[i];
-			if(ctor.getParameterTypes().length == args.length)
-				ctors.add(ctor);
+			for (Constructor ctor : allctors) {
+				if (ctor.getParameterTypes().length == args.length)
+					ctors.add(ctor);
 			}
 		if(ctors.isEmpty())
 			{
@@ -170,14 +162,12 @@ public static Object invokeConstructor(Class c, Object[] args) {
 			}
 		else //overloaded w/same arity
 			{
-			for(Iterator iterator = ctors.iterator(); iterator.hasNext();)
-				{
-				Constructor ctor = (Constructor) iterator.next();
-				Class[] params = ctor.getParameterTypes();
-				if(isCongruent(params, args))
-					{
-					Object[] boxedArgs = boxArgs(params, args);
-					return ctor.newInstance(boxedArgs);
+				for (Object ctor1 : ctors) {
+					Constructor ctor = (Constructor) ctor1;
+					Class[] params = ctor.getParameterTypes();
+					if (isCongruent(params, args)) {
+						Object[] boxedArgs = boxArgs(params, args);
+						return ctor.newInstance(boxedArgs);
 					}
 				}
 			throw new IllegalArgumentException("No matching ctor found"
@@ -195,12 +185,12 @@ public static Object invokeStaticMethodVariadic(String className, String methodN
 
 }
 
-public static Object invokeStaticMethod(String className, String methodName, Object[] args) {
+public static Object invokeStaticMethod(String className, String methodName, Object... args) {
 	Class c = RT.classForName(className);
 	return invokeStaticMethod(c, methodName, args);
 }
 
-public static Object invokeStaticMethod(Class c, String methodName, Object[] args) {
+public static Object invokeStaticMethod(Class c, String methodName, Object... args) {
 	if(methodName.equals("new"))
 		return invokeConstructor(c, args);
 	List methods = getMethods(c, args.length, methodName, true);
@@ -350,7 +340,7 @@ public static Object invokeInstanceMember(String name, Object target, Object arg
 			}
 		return arg1;
 		}
-	return invokeInstanceMethod(target, name, new Object[]{arg1});
+	return invokeInstanceMethod(target, name, arg1);
 }
 
 public static Object invokeInstanceMember(String name, Object target, Object... args) {
@@ -360,12 +350,11 @@ public static Object invokeInstanceMember(String name, Object target, Object... 
 
 static public Field getField(Class c, String name, boolean getStatics){
 	Field[] allfields = c.getFields();
-	for(int i = 0; i < allfields.length; i++)
-		{
-		if(name.equals(allfields[i].getName())
-		   && Modifier.isStatic(allfields[i].getModifiers()) == getStatics)
-			return allfields[i];
-		}
+	for (Field allfield : allfields) {
+		if (name.equals(allfield.getName())
+				&& Modifier.isStatic(allfield.getModifiers()) == getStatics)
+			return allfield;
+	}
 	return null;
 }
 
@@ -373,26 +362,20 @@ static public List getMethods(Class c, int arity, String name, boolean getStatic
 	Method[] allmethods = c.getMethods();
 	ArrayList methods = new ArrayList();
 	ArrayList bridgeMethods = new ArrayList();
-	for(int i = 0; i < allmethods.length; i++)
-		{
-		Method method = allmethods[i];
-		if(name.equals(method.getName())
-		   && Modifier.isStatic(method.getModifiers()) == getStatics
-		   && method.getParameterTypes().length == arity)
-			{
-			try
-				{
-				if(method.isBridge()
-				   && c.getMethod(method.getName(), method.getParameterTypes())
+	for (Method method : allmethods) {
+		if (name.equals(method.getName())
+				&& Modifier.isStatic(method.getModifiers()) == getStatics
+				&& method.getParameterTypes().length == arity) {
+			try {
+				if (method.isBridge()
+						&& c.getMethod(method.getName(), method.getParameterTypes())
 						.equals(method))
 					bridgeMethods.add(method);
 				else
 					methods.add(method);
-				}
-			catch(NoSuchMethodException e)
-				{
-				}
+			} catch (NoSuchMethodException e) {
 			}
+		}
 //			   && (!method.isBridge()
 //			       || (c == StringBuilder.class &&
 //			          c.getMethod(method.getName(), method.getParameterTypes())
@@ -400,7 +383,7 @@ static public List getMethods(Class c, int arity, String name, boolean getStatic
 //				{
 //				methods.add(allmethods[i]);
 //				}
-		}
+	}
 
 	if(methods.isEmpty())
 		methods.addAll(bridgeMethods);
@@ -408,13 +391,11 @@ static public List getMethods(Class c, int arity, String name, boolean getStatic
 	if(!getStatics && c.isInterface())
 		{
 		allmethods = Object.class.getMethods();
-		for(int i = 0; i < allmethods.length; i++)
-			{
-			if(name.equals(allmethods[i].getName())
-			   && Modifier.isStatic(allmethods[i].getModifiers()) == getStatics
-			   && allmethods[i].getParameterTypes().length == arity)
-				{
-				methods.add(allmethods[i]);
+			for (Method allmethod : allmethods) {
+				if (name.equals(allmethod.getName())
+						&& Modifier.isStatic(allmethod.getModifiers()) == getStatics
+						&& allmethod.getParameterTypes().length == arity) {
+					methods.add(allmethod);
 				}
 			}
 		}
@@ -449,7 +430,7 @@ static Object boxArg(Class paramType, Object arg){
 	                                   ", given: " + arg.getClass().getName());
 }
 
-static Object[] boxArgs(Class[] params, Object[] args){
+static Object[] boxArgs(Class[] params, Object... args){
 	if(params.length == 0)
 		return null;
 	Object[] ret = new Object[params.length];
@@ -495,7 +476,7 @@ static public boolean paramArgTypeMatch(Class paramType, Class argType){
 	return false;
 }
 
-static boolean isCongruent(Class[] params, Object[] args){
+static boolean isCongruent(Class[] params, Object... args){
 	boolean ret = false;
 	if(args == null)
 		return params.length == 0;

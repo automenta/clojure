@@ -22,16 +22,16 @@ import java.util.regex.Pattern;
 
 public class EdnReader{
 
-static IFn[] macros = new IFn[256];
-static IFn[] dispatchMacros = new IFn[256];
-static Pattern symbolPat = Pattern.compile("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)");
-static Pattern intPat =
+static final IFn[] macros = new IFn[256];
+static final IFn[] dispatchMacros = new IFn[256];
+static final Pattern symbolPat = Pattern.compile("[:]?([\\D&&[^/]].*/)?(/|[\\D&&[^/]][^/]*)");
+static final Pattern intPat =
 		Pattern.compile(
 				"([-+]?)(?:(0)|([1-9][0-9]*)|0[xX]([0-9A-Fa-f]+)|0([0-7]+)|([1-9][0-9]?)[rR]([0-9A-Za-z]+)|0[0-9]+)(N)?");
-static Pattern ratioPat = Pattern.compile("([-+]?[0-9]+)/([0-9]+)");
-static Pattern floatPat = Pattern.compile("([-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?)(M)?");
+static final Pattern ratioPat = Pattern.compile("([-+]?[0-9]+)/([0-9]+)");
+static final Pattern floatPat = Pattern.compile("([-+]?[0-9]+(\\.[0-9]*)?([eE][-+]?[0-9]+)?)(M)?");
 
-static IFn taggedReader = new TaggedReader();
+static final IFn taggedReader = new TaggedReader();
 
 static
 	{
@@ -260,18 +260,14 @@ static private int readUnicodeChar(PushbackReader r, int initch, int base, int l
 }
 
 static private Object interpretToken(String s) {
-	if(s.equals("nil"))
-		{
-		return null;
-		}
-	else if(s.equals("true"))
-		{
-		return RT.T;
-		}
-	else if(s.equals("false"))
-		{
-		return RT.F;
-		}
+	switch (s) {
+		case "nil":
+			return null;
+		case "true":
+			return RT.T;
+		case "false":
+			return RT.F;
+	}
 
 	Object ret = null;
 
@@ -711,8 +707,8 @@ public static class TaggedReader extends AFn{
 		return readTagged(r, sym, (IPersistentMap) opts);
 	}
 
-	static Keyword READERS = Keyword.intern(null,"readers");
-	static Keyword DEFAULT = Keyword.intern(null,"default");
+	static final Keyword READERS = Keyword.intern(null,"readers");
+	static final Keyword DEFAULT = Keyword.intern(null,"default");
 
 	private Object readTagged(PushbackReader reader, Symbol tag, IPersistentMap opts){
 		Object o = read(reader, true, null, true, opts);

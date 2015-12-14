@@ -14,6 +14,7 @@ package clojure.lang;
 
 import java.math.BigInteger;
 import java.math.BigDecimal;
+import java.util.Objects;
 
 public final class BigInt extends Number implements IHashEq{
 
@@ -46,7 +47,7 @@ public boolean equals(Object obj){
 		BigInt o = (BigInt) obj;
 		if(bipart == null)
 			return o.bipart == null && this.lpart == o.lpart;
-		return o.bipart != null && this.bipart.equals(o.bipart);
+		return Objects.equals(bipart, bipart);
 		}
 	return false;
 }

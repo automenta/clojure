@@ -26,7 +26,7 @@ transient String _str;
 public String toString(){
 	if(_str == null){
 		if(ns != null)
-			_str = (ns + "/" + name);
+			_str = (ns + '/' + name);
 		else
 			_str = name;
 	}

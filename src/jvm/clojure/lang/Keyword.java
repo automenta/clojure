@@ -18,37 +18,37 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.SoftReference;
 
 
 public class Keyword implements IFn, Comparable, Named, Serializable, IHashEq {
 
-private static ConcurrentHashMap<Symbol, Reference<Keyword>> table = new ConcurrentHashMap();
+private static final ConcurrentHashMap<Symbol, Reference<Keyword>> table = new ConcurrentHashMap();
 static final ReferenceQueue rq = new ReferenceQueue();
 public final Symbol sym;
 final int hasheq;
 transient String _str;
 
-public static Keyword intern(Symbol sym){
-	Keyword k = null;
-	Reference<Keyword> existingRef = table.get(sym);
-	if(existingRef == null)
-		{
-		Util.clearCache(rq, table);
-		if(sym.meta() != null)
-			sym = (Symbol) sym.withMeta(null);
-		k = new Keyword(sym);
-		existingRef = table.putIfAbsent(sym, new WeakReference<Keyword>(k, rq));
+	public static Keyword intern(Symbol sym) {
+		while (true) {
+			Keyword k = null;
+			Reference<Keyword> existingRef = table.get(sym);
+			if (existingRef == null) {
+				Util.clearCache(rq, table);
+				if (sym.meta() != null)
+					sym = (Symbol) sym.withMeta(null);
+				k = new Keyword(sym);
+				existingRef = table.putIfAbsent(sym, new WeakReference<>(k, rq));
+			}
+			if (existingRef == null)
+				return k;
+			Keyword existingk = existingRef.get();
+			if (existingk != null)
+				return existingk;
+			//entry died in the interim, do over
+			table.remove(sym, existingRef);
+
 		}
-	if(existingRef == null)
-		return k;
-	Keyword existingk = existingRef.get();
-	if(existingk != null)
-		return existingk;
-	//entry died in the interim, do over
-	table.remove(sym, existingRef);
-	return intern(sym);
-}
+	}
 
 public static Keyword intern(String ns, String name){
 	return intern(Symbol.intern(ns, name));

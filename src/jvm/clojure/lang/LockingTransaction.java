@@ -33,7 +33,7 @@ static final int RETRY = 2;
 static final int KILLED = 3;
 static final int COMMITTED = 4;
 
-final static ThreadLocal<LockingTransaction> transaction = new ThreadLocal<LockingTransaction>();
+final static ThreadLocal<LockingTransaction> transaction = new ThreadLocal<>();
 
 
 static class RetryEx extends Error{
@@ -103,12 +103,12 @@ long readPoint;
 long startPoint;
 long startTime;
 final RetryEx retryex = new RetryEx();
-final ArrayList<Agent.Action> actions = new ArrayList<Agent.Action>();
-final HashMap<Ref, Object> vals = new HashMap<Ref, Object>();
-final HashSet<Ref> sets = new HashSet<Ref>();
-final TreeMap<Ref, ArrayList<CFn>> commutes = new TreeMap<Ref, ArrayList<CFn>>();
+final ArrayList<Agent.Action> actions = new ArrayList<>();
+final HashMap<Ref, Object> vals = new HashMap<>();
+final HashSet<Ref> sets = new HashSet<>();
+final TreeMap<Ref, ArrayList<CFn>> commutes = new TreeMap<>();
 
-final HashSet<Ref> ensures = new HashSet<Ref>();   //all hold readLock
+final HashSet<Ref> ensures = new HashSet<>();   //all hold readLock
 
 
 void tryWriteLock(Ref ref){
@@ -256,8 +256,8 @@ static class Notify{
 Object run(Callable fn) throws Exception{
 	boolean done = false;
 	Object ret = null;
-	ArrayList<Ref> locked = new ArrayList<Ref>();
-	ArrayList<Notify> notify = new ArrayList<Notify>();
+	ArrayList<Ref> locked = new ArrayList<>();
+	ArrayList<Notify> notify = new ArrayList<>();
 
 	for(int i = 0; !done && i < RETRY_LIMIT; i++)
 		{
@@ -310,7 +310,7 @@ Object run(Callable fn) throws Exception{
 				for(Map.Entry<Ref, Object> e : vals.entrySet())
 					{
 					Ref ref = e.getKey();
-					ref.validate(ref.getValidator(), e.getValue());
+					ARef.validate(ref.getValidator(), e.getValue());
 					}
 
 				//at this point, all values calced, all refs to be written locked
@@ -483,7 +483,7 @@ Object doCommute(Ref ref, IFn fn, ISeq args) {
 		}
 	ArrayList<CFn> fns = commutes.get(ref);
 	if(fns == null)
-		commutes.put(ref, fns = new ArrayList<CFn>());
+		commutes.put(ref, fns = new ArrayList<>());
 	fns.add(new CFn(fn, args));
 	Object ret = fn.applyTo(RT.cons(vals.get(ref), args));
 	vals.put(ref, ret);

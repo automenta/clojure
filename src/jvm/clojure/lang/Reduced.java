@@ -11,7 +11,7 @@
 package clojure.lang;
 
 public final class Reduced implements IDeref{
-Object val;
+final Object val;
 
 public Reduced(Object val){
 	this.val = val;

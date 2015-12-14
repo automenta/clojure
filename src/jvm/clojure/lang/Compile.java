@@ -31,7 +31,7 @@ private static final Var compile = RT.var("clojure.core", "compile");
 private static final Var warn_on_reflection = RT.var("clojure.core", "*warn-on-reflection*");
 private static final Var unchecked_math = RT.var("clojure.core", "*unchecked-math*");
 
-public static void main(String[] args) throws IOException{
+public static void main(String... args) throws IOException{
 
 	OutputStreamWriter out = (OutputStreamWriter) RT.OUT.deref();
 	PrintWriter err = RT.errPrintWriter();
@@ -62,7 +62,7 @@ public static void main(String[] args) throws IOException{
 
 		for(String lib : args)
         {
-            out.write("Compiling " + lib + " to " + path + "\n");
+            out.write("Compiling " + lib + " to " + path + '\n');
             out.flush();
             compile.invoke(Symbol.intern(lib));
         }

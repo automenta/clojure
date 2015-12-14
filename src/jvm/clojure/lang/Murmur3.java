@@ -30,9 +30,6 @@
 
 package clojure.lang;
 
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-
 /**
  * See http://smhasher.googlecode.com/svn/trunk/MurmurHash3.cpp
  * MurmurHash3_x86_32

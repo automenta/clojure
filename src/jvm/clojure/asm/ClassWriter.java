@@ -653,7 +653,7 @@ public class ClassWriter extends ClassVisitor {
     @Override
     public final void visit(final int version, final int access,
             final String name, final String signature, final String superName,
-            final String[] interfaces) {
+            final String... interfaces) {
         this.version = version;
         this.access = access;
         this.name = newClass(name);
@@ -737,7 +737,7 @@ public class ClassWriter extends ClassVisitor {
 
     @Override
     public final MethodVisitor visitMethod(final int access, final String name,
-            final String desc, final String signature, final String[] exceptions) {
+            final String desc, final String signature, final String... exceptions) {
         return new MethodWriter(this, access, name, desc, signature,
                 exceptions, computeMaxs, computeFrames);
     }
@@ -756,163 +756,167 @@ public class ClassWriter extends ClassVisitor {
      * @return the bytecode of the class that was build with this class writer.
      */
     public byte[] toByteArray() {
-        if (index > 0xFFFF) {
-            throw new RuntimeException("Class file too large!");
-        }
-        // computes the real size of the bytecode of this class
-        int size = 24 + 2 * interfaceCount;
-        int nbFields = 0;
-        FieldWriter fb = firstField;
-        while (fb != null) {
-            ++nbFields;
-            size += fb.getSize();
-            fb = (FieldWriter) fb.fv;
-        }
-        int nbMethods = 0;
-        MethodWriter mb = firstMethod;
-        while (mb != null) {
-            ++nbMethods;
-            size += mb.getSize();
-            mb = (MethodWriter) mb.mv;
-        }
-        int attributeCount = 0;
-        if (bootstrapMethods != null) {
-            // we put it as first attribute in order to improve a bit
-            // ClassReader.copyBootstrapMethods
-            ++attributeCount;
-            size += 8 + bootstrapMethods.length;
-            newUTF8("BootstrapMethods");
-        }
-        if (ClassReader.SIGNATURES && signature != 0) {
-            ++attributeCount;
-            size += 8;
-            newUTF8("Signature");
-        }
-        if (sourceFile != 0) {
-            ++attributeCount;
-            size += 8;
-            newUTF8("SourceFile");
-        }
-        if (sourceDebug != null) {
-            ++attributeCount;
-            size += sourceDebug.length + 4;
-            newUTF8("SourceDebugExtension");
-        }
-        if (enclosingMethodOwner != 0) {
-            ++attributeCount;
-            size += 10;
-            newUTF8("EnclosingMethod");
-        }
-        if ((access & Opcodes.ACC_DEPRECATED) != 0) {
-            ++attributeCount;
-            size += 6;
-            newUTF8("Deprecated");
-        }
-        if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
-            if ((version & 0xFFFF) < Opcodes.V1_5
-                    || (access & ACC_SYNTHETIC_ATTRIBUTE) != 0) {
+        ClassWriter other = this;
+        while (true) {
+            if (other.index > 0xFFFF) {
+                throw new RuntimeException("Class file too large!");
+            }
+            // computes the real size of the bytecode of this class
+            int size = 24 + 2 * other.interfaceCount;
+            int nbFields = 0;
+            FieldWriter fb = other.firstField;
+            while (fb != null) {
+                ++nbFields;
+                size += fb.getSize();
+                fb = (FieldWriter) fb.fv;
+            }
+            int nbMethods = 0;
+            MethodWriter mb = other.firstMethod;
+            while (mb != null) {
+                ++nbMethods;
+                size += mb.getSize();
+                mb = (MethodWriter) mb.mv;
+            }
+            int attributeCount = 0;
+            if (other.bootstrapMethods != null) {
+                // we put it as first attribute in order to improve a bit
+                // ClassReader.copyBootstrapMethods
+                ++attributeCount;
+                size += 8 + other.bootstrapMethods.length;
+                other.newUTF8("BootstrapMethods");
+            }
+            if (ClassReader.SIGNATURES && other.signature != 0) {
+                ++attributeCount;
+                size += 8;
+                other.newUTF8("Signature");
+            }
+            if (other.sourceFile != 0) {
+                ++attributeCount;
+                size += 8;
+                other.newUTF8("SourceFile");
+            }
+            if (other.sourceDebug != null) {
+                ++attributeCount;
+                size += other.sourceDebug.length + 4;
+                other.newUTF8("SourceDebugExtension");
+            }
+            if (other.enclosingMethodOwner != 0) {
+                ++attributeCount;
+                size += 10;
+                other.newUTF8("EnclosingMethod");
+            }
+            if ((other.access & Opcodes.ACC_DEPRECATED) != 0) {
                 ++attributeCount;
                 size += 6;
-                newUTF8("Synthetic");
+                other.newUTF8("Deprecated");
             }
-        }
-        if (innerClasses != null) {
-            ++attributeCount;
-            size += 8 + innerClasses.length;
-            newUTF8("InnerClasses");
-        }
-        if (ClassReader.ANNOTATIONS && anns != null) {
-            ++attributeCount;
-            size += 8 + anns.getSize();
-            newUTF8("RuntimeVisibleAnnotations");
-        }
-        if (ClassReader.ANNOTATIONS && ianns != null) {
-            ++attributeCount;
-            size += 8 + ianns.getSize();
-            newUTF8("RuntimeInvisibleAnnotations");
-        }
-        if (attrs != null) {
-            attributeCount += attrs.getCount();
-            size += attrs.getSize(this, null, 0, -1, -1);
-        }
-        size += pool.length;
-        // allocates a byte vector of this size, in order to avoid unnecessary
-        // arraycopy operations in the ByteVector.enlarge() method
-        ByteVector out = new ByteVector(size);
-        out.putInt(0xCAFEBABE).putInt(version);
-        out.putShort(index).putByteArray(pool.data, 0, pool.length);
-        int mask = Opcodes.ACC_DEPRECATED | ACC_SYNTHETIC_ATTRIBUTE
-                | ((access & ACC_SYNTHETIC_ATTRIBUTE) / TO_ACC_SYNTHETIC);
-        out.putShort(access & ~mask).putShort(name).putShort(superName);
-        out.putShort(interfaceCount);
-        for (int i = 0; i < interfaceCount; ++i) {
-            out.putShort(interfaces[i]);
-        }
-        out.putShort(nbFields);
-        fb = firstField;
-        while (fb != null) {
-            fb.put(out);
-            fb = (FieldWriter) fb.fv;
-        }
-        out.putShort(nbMethods);
-        mb = firstMethod;
-        while (mb != null) {
-            mb.put(out);
-            mb = (MethodWriter) mb.mv;
-        }
-        out.putShort(attributeCount);
-        if (bootstrapMethods != null) {
-            out.putShort(newUTF8("BootstrapMethods"));
-            out.putInt(bootstrapMethods.length + 2).putShort(
-                    bootstrapMethodsCount);
-            out.putByteArray(bootstrapMethods.data, 0, bootstrapMethods.length);
-        }
-        if (ClassReader.SIGNATURES && signature != 0) {
-            out.putShort(newUTF8("Signature")).putInt(2).putShort(signature);
-        }
-        if (sourceFile != 0) {
-            out.putShort(newUTF8("SourceFile")).putInt(2).putShort(sourceFile);
-        }
-        if (sourceDebug != null) {
-            int len = sourceDebug.length - 2;
-            out.putShort(newUTF8("SourceDebugExtension")).putInt(len);
-            out.putByteArray(sourceDebug.data, 2, len);
-        }
-        if (enclosingMethodOwner != 0) {
-            out.putShort(newUTF8("EnclosingMethod")).putInt(4);
-            out.putShort(enclosingMethodOwner).putShort(enclosingMethod);
-        }
-        if ((access & Opcodes.ACC_DEPRECATED) != 0) {
-            out.putShort(newUTF8("Deprecated")).putInt(0);
-        }
-        if ((access & Opcodes.ACC_SYNTHETIC) != 0) {
-            if ((version & 0xFFFF) < Opcodes.V1_5
-                    || (access & ACC_SYNTHETIC_ATTRIBUTE) != 0) {
-                out.putShort(newUTF8("Synthetic")).putInt(0);
+            if ((other.access & Opcodes.ACC_SYNTHETIC) != 0) {
+                if ((other.version & 0xFFFF) < Opcodes.V1_5
+                        || (other.access & other.ACC_SYNTHETIC_ATTRIBUTE) != 0) {
+                    ++attributeCount;
+                    size += 6;
+                    other.newUTF8("Synthetic");
+                }
             }
+            if (other.innerClasses != null) {
+                ++attributeCount;
+                size += 8 + other.innerClasses.length;
+                other.newUTF8("InnerClasses");
+            }
+            if (ClassReader.ANNOTATIONS && other.anns != null) {
+                ++attributeCount;
+                size += 8 + other.anns.getSize();
+                other.newUTF8("RuntimeVisibleAnnotations");
+            }
+            if (ClassReader.ANNOTATIONS && other.ianns != null) {
+                ++attributeCount;
+                size += 8 + other.ianns.getSize();
+                other.newUTF8("RuntimeInvisibleAnnotations");
+            }
+            if (other.attrs != null) {
+                attributeCount += other.attrs.getCount();
+                size += other.attrs.getSize(other, null, 0, -1, -1);
+            }
+            size += other.pool.length;
+            // allocates a byte vector of this size, in order to avoid unnecessary
+            // arraycopy operations in the ByteVector.enlarge() method
+            ByteVector out = new ByteVector(size);
+            out.putInt(0xCAFEBABE).putInt(other.version);
+            out.putShort(other.index).putByteArray(other.pool.data, 0, other.pool.length);
+            int mask = Opcodes.ACC_DEPRECATED | other.ACC_SYNTHETIC_ATTRIBUTE
+                    | ((other.access & other.ACC_SYNTHETIC_ATTRIBUTE) / other.TO_ACC_SYNTHETIC);
+            out.putShort(other.access & ~mask).putShort(other.name).putShort(other.superName);
+            out.putShort(other.interfaceCount);
+            for (int i = 0; i < other.interfaceCount; ++i) {
+                out.putShort(other.interfaces[i]);
+            }
+            out.putShort(nbFields);
+            fb = other.firstField;
+            while (fb != null) {
+                fb.put(out);
+                fb = (FieldWriter) fb.fv;
+            }
+            out.putShort(nbMethods);
+            mb = other.firstMethod;
+            while (mb != null) {
+                mb.put(out);
+                mb = (MethodWriter) mb.mv;
+            }
+            out.putShort(attributeCount);
+            if (other.bootstrapMethods != null) {
+                out.putShort(other.newUTF8("BootstrapMethods"));
+                out.putInt(other.bootstrapMethods.length + 2).putShort(
+                        other.bootstrapMethodsCount);
+                out.putByteArray(other.bootstrapMethods.data, 0, other.bootstrapMethods.length);
+            }
+            if (ClassReader.SIGNATURES && other.signature != 0) {
+                out.putShort(other.newUTF8("Signature")).putInt(2).putShort(other.signature);
+            }
+            if (other.sourceFile != 0) {
+                out.putShort(other.newUTF8("SourceFile")).putInt(2).putShort(other.sourceFile);
+            }
+            if (other.sourceDebug != null) {
+                int len = other.sourceDebug.length - 2;
+                out.putShort(other.newUTF8("SourceDebugExtension")).putInt(len);
+                out.putByteArray(other.sourceDebug.data, 2, len);
+            }
+            if (other.enclosingMethodOwner != 0) {
+                out.putShort(other.newUTF8("EnclosingMethod")).putInt(4);
+                out.putShort(other.enclosingMethodOwner).putShort(other.enclosingMethod);
+            }
+            if ((other.access & Opcodes.ACC_DEPRECATED) != 0) {
+                out.putShort(other.newUTF8("Deprecated")).putInt(0);
+            }
+            if ((other.access & Opcodes.ACC_SYNTHETIC) != 0) {
+                if ((other.version & 0xFFFF) < Opcodes.V1_5
+                        || (other.access & other.ACC_SYNTHETIC_ATTRIBUTE) != 0) {
+                    out.putShort(other.newUTF8("Synthetic")).putInt(0);
+                }
+            }
+            if (other.innerClasses != null) {
+                out.putShort(other.newUTF8("InnerClasses"));
+                out.putInt(other.innerClasses.length + 2).putShort(other.innerClassesCount);
+                out.putByteArray(other.innerClasses.data, 0, other.innerClasses.length);
+            }
+            if (ClassReader.ANNOTATIONS && other.anns != null) {
+                out.putShort(other.newUTF8("RuntimeVisibleAnnotations"));
+                other.anns.put(out);
+            }
+            if (ClassReader.ANNOTATIONS && other.ianns != null) {
+                out.putShort(other.newUTF8("RuntimeInvisibleAnnotations"));
+                other.ianns.put(out);
+            }
+            if (other.attrs != null) {
+                other.attrs.put(other, null, 0, -1, -1, out);
+            }
+            if (other.invalidFrames) {
+                ClassWriter cw = new ClassWriter(other.COMPUTE_FRAMES);
+                new ClassReader(out.data).accept(cw, ClassReader.SKIP_FRAMES);
+                other = cw;
+                continue;
+            }
+            return out.data;
         }
-        if (innerClasses != null) {
-            out.putShort(newUTF8("InnerClasses"));
-            out.putInt(innerClasses.length + 2).putShort(innerClassesCount);
-            out.putByteArray(innerClasses.data, 0, innerClasses.length);
-        }
-        if (ClassReader.ANNOTATIONS && anns != null) {
-            out.putShort(newUTF8("RuntimeVisibleAnnotations"));
-            anns.put(out);
-        }
-        if (ClassReader.ANNOTATIONS && ianns != null) {
-            out.putShort(newUTF8("RuntimeInvisibleAnnotations"));
-            ianns.put(out);
-        }
-        if (attrs != null) {
-            attrs.put(this, null, 0, -1, -1, out);
-        }
-        if (invalidFrames) {
-            ClassWriter cw = new ClassWriter(COMPUTE_FRAMES);
-            new ClassReader(out.data).accept(cw, ClassReader.SKIP_FRAMES);
-            return cw.toByteArray();
-        }
-        return out.data;
     }
 
     // ------------------------------------------------------------------------
@@ -932,28 +936,28 @@ public class ClassWriter extends ClassVisitor {
      */
     Item newConstItem(final Object cst) {
         if (cst instanceof Integer) {
-            int val = ((Integer) cst).intValue();
+            int val = (Integer) cst;
             return newInteger(val);
         } else if (cst instanceof Byte) {
             int val = ((Byte) cst).intValue();
             return newInteger(val);
         } else if (cst instanceof Character) {
-            int val = ((Character) cst).charValue();
+            int val = (Character) cst;
             return newInteger(val);
         } else if (cst instanceof Short) {
             int val = ((Short) cst).intValue();
             return newInteger(val);
         } else if (cst instanceof Boolean) {
-            int val = ((Boolean) cst).booleanValue() ? 1 : 0;
+            int val = (Boolean) cst ? 1 : 0;
             return newInteger(val);
         } else if (cst instanceof Float) {
-            float val = ((Float) cst).floatValue();
+            float val = (Float) cst;
             return newFloat(val);
         } else if (cst instanceof Long) {
-            long val = ((Long) cst).longValue();
+            long val = (Long) cst;
             return newLong(val);
         } else if (cst instanceof Double) {
-            double val = ((Double) cst).doubleValue();
+            double val = (Double) cst;
             return newDouble(val);
         } else if (cst instanceof String) {
             return newString((String) cst);
@@ -1187,8 +1191,7 @@ public class ClassWriter extends ClassVisitor {
         int argsLength = bsmArgs.length;
         bootstrapMethods.putShort(argsLength);
 
-        for (int i = 0; i < argsLength; i++) {
-            Object bsmArg = bsmArgs[i];
+        for (Object bsmArg : bsmArgs) {
             hashCode ^= bsmArg.hashCode();
             bootstrapMethods.putShort(newConst(bsmArg));
         }

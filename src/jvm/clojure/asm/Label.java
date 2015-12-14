@@ -367,7 +367,7 @@ public class Label {
      *             been created by the given code writer.
      */
     boolean resolve(final MethodWriter owner, final int position,
-            final byte[] data) {
+            final byte... data) {
         boolean needUpdate = false;
         this.status |= RESOLVED;
         this.position = position;

@@ -97,54 +97,61 @@ public abstract class MethodVisitor {
      * Visits the default value of this annotation interface method.
      *
      * @return a visitor to the visit the actual default value of this
-     *         annotation interface method, or <tt>null</tt> if this visitor is
-     *         not interested in visiting this default value. The 'name'
-     *         parameters passed to the methods of this annotation visitor are
-     *         ignored. Moreover, exacly one visit method must be called on this
-     *         annotation visitor, followed by visitEnd.
+     * annotation interface method, or <tt>null</tt> if this visitor is
+     * not interested in visiting this default value. The 'name'
+     * parameters passed to the methods of this annotation visitor are
+     * ignored. Moreover, exacly one visit method must be called on this
+     * annotation visitor, followed by visitEnd.
      */
     public AnnotationVisitor visitAnnotationDefault() {
-        if (mv != null) {
-            return mv.visitAnnotationDefault();
+        MethodVisitor other = this;
+        while (true) {
+            if (other.mv != null) {
+                other = other.mv;
+                continue;
+            }
+            return null;
         }
-        return null;
     }
 
     /**
      * Visits an annotation of this method.
      *
-     * @param desc
-     *            the class descriptor of the annotation class.
-     * @param visible
-     *            <tt>true</tt> if the annotation is visible at runtime.
+     * @param desc    the class descriptor of the annotation class.
+     * @param visible <tt>true</tt> if the annotation is visible at runtime.
      * @return a visitor to visit the annotation values, or <tt>null</tt> if
-     *         this visitor is not interested in visiting this annotation.
+     * this visitor is not interested in visiting this annotation.
      */
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        if (mv != null) {
-            return mv.visitAnnotation(desc, visible);
+        MethodVisitor other = this;
+        while (true) {
+            if (other.mv != null) {
+                other = other.mv;
+                continue;
+            }
+            return null;
         }
-        return null;
     }
 
     /**
      * Visits an annotation of a parameter this method.
      *
-     * @param parameter
-     *            the parameter index.
-     * @param desc
-     *            the class descriptor of the annotation class.
-     * @param visible
-     *            <tt>true</tt> if the annotation is visible at runtime.
+     * @param parameter the parameter index.
+     * @param desc      the class descriptor of the annotation class.
+     * @param visible   <tt>true</tt> if the annotation is visible at runtime.
      * @return a visitor to visit the annotation values, or <tt>null</tt> if
-     *         this visitor is not interested in visiting this annotation.
+     * this visitor is not interested in visiting this annotation.
      */
     public AnnotationVisitor visitParameterAnnotation(int parameter,
-            String desc, boolean visible) {
-        if (mv != null) {
-            return mv.visitParameterAnnotation(parameter, desc, visible);
+                                                      String desc, boolean visible) {
+        MethodVisitor other = this;
+        while (true) {
+            if (other.mv != null) {
+                other = other.mv;
+                continue;
+            }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -242,7 +249,7 @@ public abstract class MethodVisitor {
      *             Opcodes#F_SAME frame, in which case it is silently ignored).
      */
     public void visitFrame(int type, int nLocal, Object[] local, int nStack,
-            Object[] stack) {
+                           Object... stack) {
         if (mv != null) {
             mv.visitFrame(type, nLocal, local, nStack, stack);
         }
@@ -538,7 +545,7 @@ public abstract class MethodVisitor {
      *            beginnings of the handler blocks. <tt>labels[i]</tt> is the
      *            beginning of the handler block for the <tt>keys[i]</tt> key.
      */
-    public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
+    public void visitLookupSwitchInsn(Label dflt, int[] keys, Label... labels) {
         if (mv != null) {
             mv.visitLookupSwitchInsn(dflt, keys, labels);
         }

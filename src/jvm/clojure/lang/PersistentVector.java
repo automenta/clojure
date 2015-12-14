@@ -25,7 +25,7 @@ public static class Node implements Serializable {
 	transient public final AtomicReference<Thread> edit;
 	public final Object[] array;
 
-	public Node(AtomicReference<Thread> edit, Object[] array){
+	public Node(AtomicReference<Thread> edit, Object... array){
 		this.edit = edit;
 		this.array = array;
 	}
@@ -36,7 +36,7 @@ public static class Node implements Serializable {
 	}
 }
 
-final static AtomicReference<Thread> NOEDIT = new AtomicReference<Thread>(null);
+final static AtomicReference<Thread> NOEDIT = new AtomicReference<>(null);
 public final static Node EMPTY_NODE = new Node(NOEDIT, new Object[32]);
 
 final int cnt;
@@ -57,7 +57,7 @@ private static final IFn TRANSIENT_VECTOR_CONJ = new AFn() {
     }
 };
 
-static public PersistentVector adopt(Object [] items){
+static public PersistentVector adopt(Object... items){
 	return new PersistentVector(items.length, 5, EMPTY_NODE, items);
 }
 
@@ -94,8 +94,7 @@ static public PersistentVector create(List list){
         return new PersistentVector(size, 5, PersistentVector.EMPTY_NODE, list.toArray());
 
     TransientVector ret = EMPTY.asTransient();
-    for(int i=0; i<size; i++)
-        ret = ret.conj(list.get(i));
+	for (Object aList : list) ret = ret.conj(aList);
     return ret.persistent();
 }
 
@@ -118,7 +117,7 @@ static public PersistentVector create(Object... items){
 	return ret.persistent();
 }
 
-PersistentVector(int cnt, int shift, Node root, Object[] tail){
+PersistentVector(int cnt, int shift, Node root, Object... tail){
 	this._meta = null;
 	this.cnt = cnt;
 	this.shift = shift;
@@ -127,7 +126,7 @@ PersistentVector(int cnt, int shift, Node root, Object[] tail){
 }
 
 
-PersistentVector(IPersistentMap meta, int cnt, int shift, Node root, Object[] tail){
+PersistentVector(IPersistentMap meta, int cnt, int shift, Node root, Object... tail){
 	this._meta = meta;
 	this.cnt = cnt;
 	this.shift = shift;
@@ -337,11 +336,11 @@ public Object reduce(IFn f, Object init){
     int step = 0;
     for(int i=0;i<cnt;i+=step){
         Object[] array = arrayFor(i);
-        for(int j =0;j<array.length;++j){
-            init = f.invoke(init,array[j]);
-            if(RT.isReduced(init))
-	            return ((IDeref)init).deref();
-            }
+		for (Object anArray : array) {
+			init = f.invoke(init, anArray);
+			if (RT.isReduced(init))
+				return ((IDeref) init).deref();
+		}
         step = array.length;
     }
     return init;
@@ -521,7 +520,7 @@ static final class TransientVector extends AFn implements ITransientVector, Coun
 	volatile Node root;
 	volatile Object[] tail;
 
-	TransientVector(int cnt, int shift, Node root, Object[] tail){
+	TransientVector(int cnt, int shift, Node root, Object... tail){
 		this.cnt = cnt;
 		this.shift = shift;
 		this.root = root;
@@ -552,7 +551,7 @@ static final class TransientVector extends AFn implements ITransientVector, Coun
 	}
 
 	static Node editableRoot(Node node){
-		return new Node(new AtomicReference<Thread>(Thread.currentThread()), node.array.clone());
+		return new Node(new AtomicReference<>(Thread.currentThread()), node.array.clone());
 	}
 
 	public PersistentVector persistent(){
@@ -568,7 +567,7 @@ static final class TransientVector extends AFn implements ITransientVector, Coun
 		return new PersistentVector(cnt, shift, root, trimmedTail);
 	}
 
-	static Object[] editableTail(Object[] tl){
+	static Object[] editableTail(Object... tl){
 		Object[] ret = new Object[32];
 		System.arraycopy(tl,0,ret,0,tl.length);
 		return ret;

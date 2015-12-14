@@ -29,19 +29,20 @@
  */
 package clojure.asm.commons;
 
+import clojure.asm.ClassVisitor;
+import clojure.asm.FieldVisitor;
+import clojure.asm.MethodVisitor;
+import clojure.asm.Opcodes;
+import com.gs.collections.impl.list.mutable.FastList;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-
-import clojure.asm.ClassVisitor;
-import clojure.asm.FieldVisitor;
-import clojure.asm.MethodVisitor;
-import clojure.asm.Opcodes;
+import java.util.Objects;
 
 /**
  * A {@link ClassVisitor} that adds a serial version unique identifier to a
@@ -141,7 +142,7 @@ public class SerialVersionUIDAdder extends ClassVisitor {
      * Collection of fields. (except private static and private transient
      * fields)
      */
-    private Collection<Item> svuidFields;
+    private final Collection<Item> svuidFields;
 
     /**
      * Set to true if the class has static initializer.
@@ -151,12 +152,12 @@ public class SerialVersionUIDAdder extends ClassVisitor {
     /**
      * Collection of non-private constructors.
      */
-    private Collection<Item> svuidConstructors;
+    private final Collection<Item> svuidConstructors;
 
     /**
      * Collection of non-private methods.
      */
-    private Collection<Item> svuidMethods;
+    private final Collection<Item> svuidMethods;
 
     /**
      * Creates a new {@link SerialVersionUIDAdder}. <i>Subclasses must not use
@@ -183,9 +184,9 @@ public class SerialVersionUIDAdder extends ClassVisitor {
      */
     protected SerialVersionUIDAdder(final int api, final ClassVisitor cv) {
         super(api, cv);
-        svuidFields = new ArrayList<Item>();
-        svuidConstructors = new ArrayList<Item>();
-        svuidMethods = new ArrayList<Item>();
+        svuidFields = new FastList<>();
+        svuidConstructors = new FastList<>();
+        svuidMethods = new FastList<>();
     }
 
     // ------------------------------------------------------------------------
@@ -199,7 +200,7 @@ public class SerialVersionUIDAdder extends ClassVisitor {
     @Override
     public void visit(final int version, final int access, final String name,
             final String signature, final String superName,
-            final String[] interfaces) {
+            final String... interfaces) {
         computeSVUID = (access & Opcodes.ACC_INTERFACE) == 0;
 
         if (computeSVUID) {
@@ -217,7 +218,7 @@ public class SerialVersionUIDAdder extends ClassVisitor {
      */
     @Override
     public MethodVisitor visitMethod(final int access, final String name,
-            final String desc, final String signature, final String[] exceptions) {
+            final String desc, final String signature, final String... exceptions) {
         if (computeSVUID) {
             if ("<clinit>".equals(name)) {
                 hasStaticInitializer = true;
@@ -290,7 +291,7 @@ public class SerialVersionUIDAdder extends ClassVisitor {
     @Override
     public void visitInnerClass(final String aname, final String outerName,
             final String innerName, final int attr_access) {
-        if ((name != null) && name.equals(aname)) {
+        if (Objects.equals(name, aname)) {
             this.access = attr_access;
         }
         super.visitInnerClass(aname, outerName, innerName, attr_access);
@@ -370,8 +371,8 @@ public class SerialVersionUIDAdder extends ClassVisitor {
              * encoding.
              */
             Arrays.sort(interfaces);
-            for (int i = 0; i < interfaces.length; i++) {
-                dos.writeUTF(interfaces[i].replace('/', '.'));
+            for (String anInterface : interfaces) {
+                dos.writeUTF(anInterface.replace('/', '.'));
             }
 
             /*
@@ -458,7 +459,7 @@ public class SerialVersionUIDAdder extends ClassVisitor {
      *            the value whose SHA message digest must be computed.
      * @return the SHA-1 message digest of the given value.
      */
-    protected byte[] computeSHAdigest(final byte[] value) {
+    protected byte[] computeSHAdigest(final byte... value) {
         try {
             return MessageDigest.getInstance("SHA").digest(value);
         } catch (Exception e) {

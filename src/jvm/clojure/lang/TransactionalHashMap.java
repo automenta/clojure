@@ -91,23 +91,19 @@ public V remove(Object k){
 }
 
 public void putAll(Map<? extends K, ? extends V> map){
-	for(Iterator i = map.entrySet().iterator(); i.hasNext();)
-		{
-		Entry<K, V> e = (Entry) i.next();
+	for (Entry<? extends K, ? extends V> entry : map.entrySet()) {
+		Entry<K, V> e = (Entry) entry;
 		put(e.getKey(), e.getValue());
-		}
+	}
 }
 
 public void clear(){
-	for(int i = 0; i < bins.length; i++)
-		{
-		Ref r = bins[i];
+	for (Ref r : bins) {
 		IPersistentMap map = (IPersistentMap) r.deref();
-		if(map.count() > 0)
-			{
+		if (map.count() > 0) {
 			r.set(PersistentHashMap.EMPTY);
-			}
 		}
+	}
 }
 
 public Set<Entry<K, V>> entrySet(){

@@ -29,16 +29,11 @@
  */
 package clojure.asm.commons;
 
-import java.util.ArrayList;
+import clojure.asm.*;
+import com.gs.collections.impl.list.mutable.FastList;
+
 import java.util.Arrays;
 import java.util.List;
-
-import clojure.asm.ClassVisitor;
-import clojure.asm.Handle;
-import clojure.asm.Label;
-import clojure.asm.MethodVisitor;
-import clojure.asm.Opcodes;
-import clojure.asm.Type;
 
 /**
  * A {@link clojure.asm.MethodVisitor} with convenient methods to generate
@@ -239,7 +234,7 @@ public class GeneratorAdapter extends LocalVariablesSorter {
     /**
      * Types of the local variables of the method visited by this adapter.
      */
-    private final List<Type> localTypes = new ArrayList<Type>();
+    private final List<Type> localTypes = new FastList<>();
 
     /**
      * Creates a new {@link GeneratorAdapter}. <i>Subclasses must not use this
@@ -335,7 +330,7 @@ public class GeneratorAdapter extends LocalVariablesSorter {
      *            a set of types.
      * @return the internal names of the given types.
      */
-    private static String[] getInternalNames(final Type[] types) {
+    private static String[] getInternalNames(final Type... types) {
         if (types == null) {
             return null;
         }
@@ -1240,8 +1235,8 @@ public class GeneratorAdapter extends LocalVariablesSorter {
             if (useTable) {
                 Label[] labels = new Label[range];
                 Arrays.fill(labels, def);
-                for (int i = 0; i < len; ++i) {
-                    labels[keys[i] - min] = newLabel();
+                for (int key : keys) {
+                    labels[key - min] = newLabel();
                 }
                 mv.visitTableSwitchInsn(min, max, def, labels);
                 for (int i = 0; i < range; ++i) {
