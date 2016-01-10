@@ -38,7 +38,15 @@ public abstract class ATransientMap extends AFn implements ITransientMap, ITrans
 				throw new IllegalArgumentException("Vector arg to map conj must be a pair");
 			return assoc(v.nth(0), v.nth(1));
 			}
-		
+        else if(o instanceof IKVReduce)
+            {
+            IKVReduce m = (IKVReduce) o;
+            return (ITransientMap) m.kvreduce(ASSOC_TRANSIENT, this);
+            }
+        else return conjOther(o);
+    }
+
+    private final ITransientMap conjOther(Object o) {
 		ITransientMap ret = this;
 		for(ISeq es = RT.seq(o); es != null; es = es.next())
 			{
@@ -95,4 +103,11 @@ public abstract class ATransientMap extends AFn implements ITransientMap, ITrans
 		ensureEditable();
 		return doCount();
 	}
+
+    static final IFn ASSOC_TRANSIENT = new AFn() {
+        public Object invoke(Object tmap, Object key, Object val) {
+            return ((ATransientMap) tmap).doAssoc(key, val);
+        }
+    };
+
 }

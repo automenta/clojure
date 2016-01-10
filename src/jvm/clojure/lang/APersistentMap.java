@@ -35,7 +35,15 @@ public IPersistentCollection cons(Object o){
 			throw new IllegalArgumentException("Vector arg to map conj must be a pair");
 		return assoc(v.nth(0), v.nth(1));
 		}
+    else if(o instanceof IKVReduce)
+        {
+        IKVReduce m = (IKVReduce) o;
+        return (IPersistentCollection) m.kvreduce(ASSOC, this);
+        }
+    else return consOther(o);
+}
 
+private IPersistentCollection consOther(Object o) {
 	IPersistentMap ret = this;
 	for(ISeq es = RT.seq(o); es != null; es = es.next())
 		{
@@ -285,6 +293,13 @@ static final IFn MAKE_KEY = new AFn() {
 static final IFn MAKE_VAL = new AFn() {
     public Object invoke(Object key, Object val) {
         return val;
+    }
+};
+
+static final IFn ASSOC = new AFn() {
+    public Object invoke(Object o, Object key, Object val) {
+        IPersistentMap m = (IPersistentMap) o;
+        return m.assoc(key, val);
     }
 };
 
