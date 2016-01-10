@@ -25,19 +25,18 @@ public abstract class ATransientMap extends AFn implements ITransientMap, ITrans
 
 	public ITransientMap conj(Object o) {
 		ensureEditable();
-		if(o instanceof Map.Entry)
-			{
-			Map.Entry e = (Map.Entry) o;
-		
-			return assoc(e.getKey(), e.getValue());
-			}
-		else if(o instanceof IPersistentVector)
-			{
-			IPersistentVector v = (IPersistentVector) o;
-			if(v.count() != 2)
-				throw new IllegalArgumentException("Vector arg to map conj must be a pair");
-			return assoc(v.nth(0), v.nth(1));
-			}
+        if(o instanceof Map.Entry)
+            {
+            Map.Entry e = (Map.Entry) o;
+            return doAssoc(e.getKey(), e.getValue());
+            }
+        else if(o instanceof IPersistentVector)
+            {
+            IPersistentVector v = (IPersistentVector) o;
+            if(v.count() != 2)
+                throw new IllegalArgumentException("Vector arg to map conj must be a pair");
+            return doAssoc(v.nth(0), v.nth(1));
+            }
         else if(o instanceof IKVReduce)
             {
             IKVReduce m = (IKVReduce) o;
