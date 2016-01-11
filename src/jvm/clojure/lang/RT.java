@@ -1849,6 +1849,23 @@ static public boolean isReduced(Object r){
 	return r instanceof Reduced;
 }
 
+static public Object recordReduce(ILookup record, IFn f, Object init, IPersistentVector basefields, IKVReduce extmap) {
+    Object ret = init;
+    int n = basefields.count();
+    // reduce the basefields
+    for(int i = 0; i < n; i++) {
+        Object k = basefields.nth(i);
+        ret = f.invoke(ret, k, record.valAt(k));
+        if(isReduced(ret))
+            return ((Reduced) ret).deref();
+    }
+    // then rest
+    if (extmap != null) {
+        return extmap.kvreduce(f, ret);
+    }
+    return ret;
+}
+
 static public String resolveClassNameInContext(String className){
 	//todo - look up in context var
 	return className;

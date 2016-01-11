@@ -253,8 +253,13 @@
                        `(keySet [this#] (set (keys this#)))
                        `(values [this#] (vals this#))
                        `(entrySet [this#] (set this#)))])
-      ]
-     (let [[i m] (-> [interfaces methods] irecord eqhash iobj ilookup imap ijavamap)]
+      (ikvreduce [[i m]]
+        [(conj i 'clojure.lang.IKVReduce)
+         (conj m
+               `(kvreduce [this# f# init#]
+                          (let [flds# ~(vec (map keyword base-fields))]
+                            (clojure.lang.RT/recordReduce this# f# init# flds# ~'__extmap))))])]
+     (let [[i m] (-> [interfaces methods] irecord eqhash iobj ilookup imap ijavamap ikvreduce)]
        `(deftype* ~(symbol (name (ns-name *ns*)) (name tagname)) ~classname
           ~(conj hinted-fields '__meta '__extmap
                  '^int ^:unsynchronized-mutable __hash
