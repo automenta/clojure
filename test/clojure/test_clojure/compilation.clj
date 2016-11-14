@@ -438,3 +438,7 @@
     (is (= 42 (compilation.JDK8InterfaceMethods/staticMethod0 42)))
     (is (= "test" (compilation.JDK8InterfaceMethods/staticMethod1 "test")))
     (is (= 1 (if (compilation.JDK8InterfaceMethods/staticMethod2 true) 1 2)))))
+
+(deftest CLJ-1550-dcl-package
+  (let [pkg (.getPackage clojure.test_clojure.compilation.load_ns.x)]
+    (is (= "clojure.test_clojure.compilation.load_ns" (and pkg (.getName pkg))))))
