@@ -1322,3 +1322,13 @@
     (is (= (hash (->Rec 1 1)) (hash (assoc r :a 1))))
     (is (= (hash (->Rec 1 1)) (hash (dissoc r2 :c))))
     (is (= (hash (->Rec 1 1)) (hash (dissoc (assoc r :c 1) :c))))))
+
+(deftest vectors-are-valid-statements
+  (let [a (atom false)]
+    [(reset! a true)]
+    (is (= true @a))))
+
+(deftest maps-are-valid-statements
+  (let [a (atom false)]
+    {:foo (reset! a true)}
+    (is (= true @a))))
