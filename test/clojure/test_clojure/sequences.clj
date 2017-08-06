@@ -1606,3 +1606,12 @@
 (deftest test-sort-retains-meta
   (is (= {:a true} (meta (sort (with-meta (range 10) {:a true})))))
   (is (= {:a true} (meta (sort-by :a (with-meta (seq [{:a 5} {:a 2} {:a 3}]) {:a true}))))))
+
+(deftest test-map-indexed
+  (are [x y] (= x y)
+       '() (map-indexed str '())
+       '("0a") (map-indexed str "a")
+       '("0a" "1b" "2c") (map-indexed str "abc")
+       '("0ax" "1by" "2cz") (map-indexed str "abc" "xyz")
+       '("00000" "11111" "22222" "33333" "44444") (take 5 (map-indexed str (range) (range) (range) (range)))
+       '("0aaa") (map-indexed str "a" "ab" "abc")))

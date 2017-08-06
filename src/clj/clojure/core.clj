@@ -7296,10 +7296,11 @@ fails, attempts to require sym's namespace and retries."
 
 (defn map-indexed
   "Returns a lazy sequence consisting of the result of applying f to 0
-  and the first item of coll, followed by applying f to 1 and the second
-  item in coll, etc, until coll is exhausted. Thus function f should
-  accept 2 arguments, index and item. Returns a stateful transducer when
-  no collection is provided."
+  and the first item of each coll, followed by applying f to 1 and the
+  second item of each coll, etc, until the coll with the fewest items
+  is exhausted. Thus function f should accept an index followed by one
+  item from each coll as parameters. Returns a stateful transducer when
+  no collections are provided."
   {:added "1.2"
    :static true}
   ([f]
@@ -7312,17 +7313,41 @@ fails, attempts to require sym's namespace and retries."
           (rf result (f (vswap! i inc) input)))))))
   ([f coll]
    (letfn [(mapi [idx coll]
-                 (lazy-seq
-                   (when-let [s (seq coll)]
-                     (if (chunked-seq? s)
-                       (let [c (chunk-first s)
-                             size (int (count c))
-                             b (chunk-buffer size)]
-                         (dotimes [i size]
-                           (chunk-append b (f (+ idx i) (.nth c i))))
-                         (chunk-cons (chunk b) (mapi (+ idx size) (chunk-rest s))))
-                       (cons (f idx (first s)) (mapi (inc idx) (rest s)))))))]
-     (mapi 0 coll))))
+             (lazy-seq
+               (when-let [s (seq coll)]
+                 (if (chunked-seq? s)
+                   (let [c (chunk-first s)
+                         size (int (count c))
+                         b (chunk-buffer size)]
+                     (dotimes [i size]
+                       (chunk-append b (f (+ idx i) (.nth c i))))
+                     (chunk-cons (chunk b) (mapi (+ idx size) (chunk-rest s))))
+                   (cons (f idx (first s)) (mapi (inc idx) (rest s)))))))]
+     (mapi 0 coll)))
+  ([f c1 c2]
+   (letfn [(mapi [idx c1 c2]
+             (lazy-seq
+               (let [s1 (seq c1) s2 (seq c2)]
+                 (when (and s1 s2)
+                   (cons (f idx (first s1) (first s2))
+                         (mapi (inc idx) (rest s1) (rest s2)))))))]
+     (mapi 0 c1 c2)))
+  ([f c1 c2 c3]
+   (letfn [(mapi [idx c1 c2 c3]
+             (lazy-seq
+               (let [s1 (seq c1) s2 (seq c2) s3 (seq c3)]
+                 (when (and s1 s2 s3)
+                   (cons (f idx (first s1) (first s2) (first s3))
+                         (mapi (inc idx) (rest s1) (rest s2) (rest s3)))))))]
+     (mapi 0 c1 c2 c3)))
+  ([f c1 c2 c3 & colls]
+   (letfn [(mapi [idx colls]
+             (lazy-seq
+               (let [ss (map seq colls)]
+                 (when (every? identity ss)
+                   (cons (apply f idx (map first ss))
+                         (mapi (inc idx) (map rest ss)))))))]
+     (mapi 0 (conj colls c3 c2 c1)))))
 
 (defn keep
   "Returns a lazy sequence of the non-nil results of (f item). Note,
