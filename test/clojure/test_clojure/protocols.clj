@@ -674,3 +674,31 @@
 (deftest test-leading-dashes
   (is (= 10 (-do-dashed (Dashed.))))
   (is (= [10] (map -do-dashed [(Dashed.)]))))
+
+(defrecord ImplementedType [])
+(defrecord UnImplementedType [])
+
+(defprotocol DefaultsDispatch
+  (test-dispatch [this]))
+
+(extend-protocol DefaultsDispatch
+  Object
+  (test-dispatch [x] "Object impl")
+
+  ImplementedType
+  (test-dispatch [x] "Custom impl")
+
+  nil
+  (test-dispatch [x] "Nil impl"))
+
+(deftest test-default-dispatch
+  (are [o res] (= res (test-dispatch o))
+    false "Object impl"
+    true "Object impl"
+    5 "Object impl"
+    (into-array [1 2 3]) "Object impl"
+    (Object.) "Object impl"
+    nil "Nil impl"
+    "foo" "Object impl"
+    (ImplementedType.) "Custom impl"
+    (UnImplementedType.) "Object impl"))
