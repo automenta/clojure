@@ -1024,8 +1024,8 @@
                                     (let [ss1 (sort s1)
                                           ss2 (sort s2)]
                                       (every? identity
-                                              (map #(and (= %1 %2)
-                                                         (= (meta %1) (meta %2)))
+                                              (map #(let [vals [%1 %2 (s1 %1) (s2 %2) (s2 %1) (s1 %2)]]
+                                                      (and (apply = vals) (apply = (map meta vals))))
                                                    ss1 ss2)))))
         all-equal-sets-incl-meta (fn [& ss]
                                    (every? (fn [[s1 s2]]

@@ -35,7 +35,8 @@ public boolean contains(Object key){
 }
 
 public Object get(Object key){
-	return impl.valAt(key);
+    IMapEntry e = impl.entryAt(key);
+    return e == null ? null : e.key();
 }
 
 public int count(){

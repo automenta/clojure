@@ -19,6 +19,7 @@ public abstract class ATransientMap extends AFn implements ITransientMap, ITrans
 	abstract ITransientMap doAssoc(Object key, Object val);
 	abstract ITransientMap doWithout(Object key);
 	abstract Object doValAt(Object key, Object notFound);
+    abstract IMapEntry doEntryAt(Object key);
 	abstract int doCount();
 	abstract IPersistentMap doPersistent();
 

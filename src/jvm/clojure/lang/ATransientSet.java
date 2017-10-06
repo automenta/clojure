@@ -40,7 +40,8 @@ public abstract class ATransientSet extends AFn implements ITransientSet{
 	}
 
 	public Object get(Object key) {
-		return impl.valAt(key);
+        IMapEntry e = impl.entryAt(key);
+        return e == null ? null : e.key();
 	}
 
 	public Object invoke(Object key, Object notFound)  {

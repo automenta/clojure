@@ -365,6 +365,17 @@ static final class TransientHashMap extends ATransientMap {
 		return root.find(0, hash(key), key, notFound);
 	}
 
+    IMapEntry doEntryAt(Object key) {
+        if (key == null)
+            if (hasNull)
+                return new MapEntry(null, nullValue);
+            else
+                return null;
+        if (root == null)
+            return null;
+        return root.find(0, hash(key), key);
+    }
+
 	int doCount() {
 		return count;
 	}

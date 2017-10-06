@@ -19,4 +19,9 @@ ITransientMap assoc(Object key, Object val);
 ITransientMap without(Object key);
 
 IPersistentMap persistent();
+
+boolean containsKey(Object key);
+
+IMapEntry entryAt(Object key);
+
 }

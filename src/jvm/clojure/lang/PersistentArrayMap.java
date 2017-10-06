@@ -444,6 +444,13 @@ static final class TransientArrayMap extends ATransientMap {
 		return notFound;
 	}
 
+    IMapEntry doEntryAt(Object key) {
+        int i = indexOf(key);
+        if (i >= 0)
+            return new MapEntry(array[i], array[i + 1]);
+        return null;
+    }
+
 	int doCount() {
 		return len / 2;
 	}
