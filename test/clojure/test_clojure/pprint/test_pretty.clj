@@ -246,7 +246,12 @@ It is implemented with a number of custom enlive templates.\"
  (tst-pprint 20 delay-forced) #"#<Delay@[0-9a-f]+: \r?\n  \(first\r?\n   second\r?\n   third\)>"
  ;; Currently no way not to force the delay
  ;;(tst-pprint 20 delay-unforced) #"#<Delay@[0-9a-f]+: \n  :pending>"
- (tst-pprint 20 (pprint-test-rec. 'first 'second 'third)) "{:a first,\n :b second,\n :c third}"
+ (tst-pprint 80 (pprint-test-rec. 'first 'second 'third))
+ "#clojure.test_clojure.pprint.pprint-test-rec{:a first, :b second, :c third}"
+  (tst-pprint 56 (pprint-test-rec. 'first 'second 'third))
+  (str "#clojure.test_clojure.pprint.pprint-test-rec{:a first,\n"
+       "                                             :b second,\n"
+       "                                             :c third}")
 
  ;; basic java arrays: fails owing to assembla ticket #346
  ;;(tst-pprint 10 (int-array (range 7))) "[0,\n 1,\n 2,\n 3,\n 4,\n 5,\n 6]"

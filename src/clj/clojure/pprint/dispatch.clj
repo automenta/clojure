@@ -90,6 +90,20 @@
 
 (def ^{:private true} pprint-array (formatter-out "~<[~;~@{~w~^, ~:_~}~;]~:>"))
 
+(defn- pprint-map-kvs [amap]
+  (print-length-loop [aseq (seq amap)]
+    (when aseq
+      (pprint-logical-block
+       (write-out (ffirst aseq))
+       (.write ^java.io.Writer *out* " ")
+       (pprint-newline :linear)
+       (set! *current-length* 0)     ; always print both parts of the [k v] pair
+       (write-out (fnext (first aseq))))
+      (when (next aseq)
+          (.write ^java.io.Writer *out* ", ")
+          (pprint-newline :linear)
+          (recur (next aseq))))))
+
 ;;; (def pprint-map (formatter-out "~<{~;~@{~<~w~^ ~_~w~:>~^, ~_~}~;}~:>"))
 (defn- pprint-map [amap]
   (let [[ns lift-map] (when (not (record? amap))
@@ -97,18 +111,11 @@
         amap (or lift-map amap)
         prefix (if ns (str "#:" ns "{") "{")]
     (pprint-logical-block :prefix prefix :suffix "}"
-      (print-length-loop [aseq (seq amap)]
-        (when aseq
-          (pprint-logical-block
-            (write-out (ffirst aseq))
-            (.write ^java.io.Writer *out* " ")
-            (pprint-newline :linear)
-            (set! *current-length* 0) ; always print both parts of the [k v] pair
-            (write-out (fnext (first aseq))))
-          (when (next aseq)
-            (.write ^java.io.Writer *out* ", ")
-            (pprint-newline :linear)
-            (recur (next aseq))))))))
+      (pprint-map-kvs amap))))
+
+(defn- pprint-record [rec]
+  (pprint-logical-block :prefix (str "#" (.getName (class rec)) "{") :suffix "}"
+    (pprint-map-kvs rec)))
 
 (def ^{:private true} pprint-set (formatter-out "~<#{~;~@{~w~^ ~:_~}~;}~:>"))
 
@@ -157,12 +164,15 @@
 (use-method simple-dispatch clojure.lang.ISeq pprint-list)
 (use-method simple-dispatch clojure.lang.IPersistentVector pprint-vector)
 (use-method simple-dispatch clojure.lang.IPersistentMap pprint-map)
+(use-method simple-dispatch clojure.lang.IRecord pprint-record)
 (use-method simple-dispatch clojure.lang.IPersistentSet pprint-set)
 (use-method simple-dispatch clojure.lang.PersistentQueue pprint-pqueue)
 (use-method simple-dispatch clojure.lang.Var pprint-simple-default)
 (use-method simple-dispatch clojure.lang.IDeref pprint-ideref)
 (use-method simple-dispatch nil pr)
 (use-method simple-dispatch :default pprint-simple-default)
+
+(prefer-method simple-dispatch clojure.lang.IRecord clojure.lang.IPersistentMap)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Dispatch for the code table
