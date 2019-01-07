@@ -5734,8 +5734,10 @@
   "Returns a seq on a java.util.Enumeration"
   {:added "1.0"
    :static true}
-  [e]
-  (clojure.lang.EnumerationSeq/create e))
+  [^java.util.Enumeration e]
+  (lazy-seq
+    (when  (.hasMoreElements e)
+      (cons (.nextElement e) (enumeration-seq e)))))
 
 (defn format
   "Formats a string using java.lang.String.format, see java.util.Formatter for format
